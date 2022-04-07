@@ -2,6 +2,10 @@
 Framework, Tools and Solutions for processing high-rate signal data such as acoustics, vibrations, etc. 
 See bee population monitoring example
 
+Please subscribe to the Community mailer to participate in asynchronous discussions. https://lists.enterpriseneurosystem.org/admin/lists/community.lists.enterpriseneurosystem.org/
+
+Contact David Wood (dawood@us.ibm.com) for questions/comments/contributions.
+
 ## Build/Install
 1. Install Java 1.8 or later (up to Java 14)
 2. Install maven 3.6.3 or later
