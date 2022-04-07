@@ -12,11 +12,11 @@ See bee population monitoring example
 
 ## Dependency
 ```xml
-  	<dependency>
-  	    <groupId>org.eng.aisp</groupId>
-  	    <artifactId>aisp-core-main</artifactId>
-  	    <version>0.0.1-SNAPSHOT</version>
-  	</dependency>
+<dependency>
+   <groupId>org.eng.aisp</groupId>
+   <artifactId>aisp-core-main</artifactId>
+   <version>0.0.1-SNAPSHOT</version>
+</dependency>
 ```
 
 
