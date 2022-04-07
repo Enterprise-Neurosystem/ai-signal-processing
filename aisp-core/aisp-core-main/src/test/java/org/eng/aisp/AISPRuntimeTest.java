@@ -33,25 +33,19 @@ import org.junit.Test;
 public class AISPRuntimeTest {
 
 	@Test
-	public void testGetDiskCachingIterable() {
+	public void testGetCachingFeatureGramIterable() {
 		Iterable<ILabeledDataWindow<double[]>> data = new ArrayList<>();
 		IFeatureExtractor<double[],double[]> extractor = new IdentityFeatureExtractor();
 		IFeatureGramDescriptor<double[],double[]> fge = new FeatureGramDescriptor<double[],double[]>(100,0, extractor,null);
 		List<IFeatureGramDescriptor<double[],double[]>> fgeList = new ArrayList<>();
 		fgeList.add(fge);	
 		Iterable<ILabeledFeatureGram<double[]>[]> lfg = new LabeledFeatureIterable<double[],double[]>(data, null, fgeList); 
-		MemoryCache<?, ?> memCache = new MemoryCache();
-		Object o;
-		if (!SoundTestUtils.isExtendedRuntimeTesting()) {
-			o = AISPRuntime.getRuntime().getDiskCachingIterable(lfg, null);
-			Assert.assertTrue( o == null);
-			o = AISPRuntime.getRuntime().getDiskCachingIterable(lfg, memCache);
-			Assert.assertTrue( o == null);
-		} else {
-			o = AISPRuntime.getRuntime().getDiskCachingIterable(lfg, null);
-			Assert.assertTrue( o != null);
-			o = AISPRuntime.getRuntime().getDiskCachingIterable(lfg, memCache);
-			Assert.assertTrue( o != null);
+		boolean booleans[] = new boolean[] { true, false};
+		for (int i=0 ; i<2 ; i++) {
+			for (int j=0 ; j<2 ; j++) {
+				Iterable iter = AISPRuntime.getRuntime().getCachingFeatureGramIterable(lfg, booleans[i], booleans[j]); 
+				Assert.assertTrue(iter != null);
+			}
 		}
 	}
 
