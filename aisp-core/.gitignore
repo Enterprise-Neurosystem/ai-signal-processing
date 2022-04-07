@@ -1,0 +1,12 @@
+/bin/
+/tmp/
+/build/
+/.gradle/
+/gradle/
+.idea/
+/*.cfr
+/.DS_Store
+/spliced-labels.txt
+/spliced.wav
+/spliced.txt
+/target/

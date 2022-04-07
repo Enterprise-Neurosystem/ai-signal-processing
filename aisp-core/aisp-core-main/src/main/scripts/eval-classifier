@@ -1,0 +1,224 @@
+#!/bin/bash
+#*******************************************************************************
+# * Copyright [2022] [IBM]
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *******************************************************************************
+cmd=$0
+# Print the help message.
+function usage() {
+    echo 
+    echo For each model specification in a local .js file, trains
+    echo a model using a given training data set, stores the model
+    echo and then evaluates it against evaluation sounds. 
+    echo For each model specification a model-train.out and 
+    echo model-eval.out file is created to capture the results.
+    echo This script extracts relevant stats from those files.
+    echo Usage: $cmd [options] [yourmodel1.js yourmodel2.js ...]
+    echo Options;
+    echo " -label name: name of label found on sounds to train on" 
+    echo "      Defaults to $label"
+    echo " -train-dir dir : directory containing metadata.csv file"
+    echo "      Defaults to $trainDir"
+    echo " -eval-dir dir : directory containing metadata.csv file"
+    echo "      Defaults to $evalDir"
+    ehco " -clipLen msec: length of clips to train on and evaluate"
+    echo "      Default is $clipLen"
+    echo " -stats: extract stats from existing .out files" 
+    echo " -default-models : use a default set of models, otherwise,"
+    echo "   use all models define in .js files in the currenct directory" 
+    echo " -verbose : give more details in the process."
+    echo Examples:
+    echo "  $cmd -train-dir base -eval-dir recaptures -default-models"
+    echo "  $cmd -train-dir base -eval-dir recaptures -label cause model1.js model2.js"
+}
+# Create a set of default models in .js files in the current directory
+function makeModels() {
+    modelFileBase=model
+    modelIndex=1
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40,65);
+var gmm1 = new GaussianMixtureClassifier(trainingLabel, extractor, null, 100,100, 1);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40,65);
+var classifier = new GMMClassifier(trainingLabel, extractor,  null, 100,100, 1, false);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var gmm2 = new GaussianMixtureClassifier(trainingLabel, extractor,  processor, 40, 40, 1); // 40,20 fails
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var gmm2 = new GMMClassifier(trainingLabel, extractor,  processor, 40, 40, 1, false);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var gmm3 = new GaussianMixtureClassifier(trainingLabel, extractor,  processor, 40, 40, 3);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var classifier = new GMMClassifier(trainingLabel, extractor,  processor, 40, 40, 3, true);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var classifier = new GaussianMixtureClassifier(trainingLabel, extractor,  processor, 40, 40, 5);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(40);
+var processor1 = new NormalizingFeatureProcessor(true,true, false, true);
+var processor2 = new DeltaFeatureProcessor(2, [1,1,1]);
+var processor = new PipelinedFeatureProcessor([processor1, processor2]);
+var classifier = new GMMClassifier(trainingLabel, extractor,  processor, 40, 40, 5, true);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(20);
+var processor = new DeltaFeatureProcessor(2, [1,1,1]);
+var gmm2 = new GaussianMixtureClassifier(trainingLabel, extractor,  processor, 40, 20, 3);
+EOF
+    modelIndex=$(expr $modelIndex + 1)
+    cat << EOF > ${modelFileBase}-${modelIndex}.js 
+var extractor = new MFCCFeatureExtractor(20);
+var processor= new DeltaFeatureProcessor(2, [1,1,1]);
+var classifier = new GMMClassifier(trainingLabel, extractor,  processor, 40, 20, 3, true);
+EOF
+
+}
+# Search the the *.out files in the current directory for useful info.
+function stats() {
+    echo Training time
+    grep -s 'Completed model train' *-eval.out
+    echo
+    echo Classify performance 
+    grep -s '^Classification performance' *-eval.out
+    echo
+    echo Classify accuracy
+    grep -s '^Accuracy' *-eval.out
+}
+#################################################################################################
+#
+# Begin non-function code.
+# First parse the options.
+#
+trainDir=.
+evalDir=
+label=source
+modelSpecs=
+clipLen=5000
+verbose=false
+while [ $# -ne 0 ]; do
+	case $1 in 
+	    -*help) usage; exit 0
+	    ;;
+	    -train-dir) trainDir=$2; shift
+	    ;;
+	    -eval-dir|-test-dir) evalDir=$2; shift
+	    ;;
+	    -clipLen) clipLen=$2; shift
+	    ;;
+	    -label) label=$2; shift
+	    ;;
+	    -default-models) makeModels
+	    ;;
+	    -stats) stats; exit 0; 
+	    ;;
+	    -verbose) verbose=true; 
+	    ;;
+	    -*) echo Unrecognized option: $1; exit 1;
+	    ;;
+	    *.js) modelSpecs="$modelSpecs jsfile:$1"; 
+	    ;;
+	    *) modelSpecs="$modelSpecs $1"; 
+	    ;;
+	esac
+	shift
+done
+#########################
+#
+# Check the options
+#
+if [ -z "$modelSpecs" ]; then
+    echo No models or model specifications provided. 
+    usage
+    exit 1
+fi
+if [ -z "$evalDir" ]; then
+    echo Evaluating model against training data.
+    evalDir=$trainDir
+fi
+#########################
+#
+# Begin the actual work.
+#
+baseTrainDir=$(basename $(cd $trainDir; pwd) )
+
+for modelspec in $modelSpecs; do
+   echo
+   echo
+   model=$(basename $modelspec | sed -e 's/\.js//g' -e 's/jsfile://g' )
+   modelfile=$model-$baseTrainDir.cfr
+   eval_outfile=$model-eval.out
+   if [ ! -e $modelfile ]; then
+	echo Creating new model in $modelfile using specification $modelspec trained on 
+	echo "'"$label"' labeled sounds in $trainDir directory clipped to $clipLen msec."
+        echo 
+	if [ "$verbose" = "true" ]; then
+		set -x
+	fi
+	train -label $label -clipLen $clipLen -sound-dir $trainDir -output \
+		$modelfile -model $modelspec 2>&1 | 
+	if [ "$verbose" = "true" ]; then
+		tee $eval_outfile
+	else
+		cat > $eval_outfile
+	fi
+	set +x
+   fi
+   echo Evaluating model file $modelfile with sounds in $evalDir directory 
+   echo clipped to $clipLen msec 
+   echo
+   if [ "$verbose" = "true" ]; then
+	set -x
+   fi
+   evaluate -t -sound-dir $evalDir -file $modelfile  -clipLen $clipLen 2>&1 | 
+   if [ "$verbose" = "true" ]; then
+    	tee -a $eval_outfile
+   else
+    	cat >> $eval_outfile
+   fi
+   set +x
+   stats
+done

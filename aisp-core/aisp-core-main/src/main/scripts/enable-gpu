@@ -1,0 +1,42 @@
+#!/bin/bash
+#*******************************************************************************
+# * Copyright [2022] [IBM]
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *******************************************************************************
+function usage() {
+cat <<EOF
+Intended by sourced by the aisprun script to enable GPU.
+This should not need to be called directly
+Usage: source enable-gpu
+Sets up the GPU runtime for the Java (and Python) runtimes, including
+ - Setting JAVA_OPTIONS and LD_LIBRARY_PATH to point to the first
+   directory in $cudalibdirs found to exist.
+EOF
+}
+cudalibdirs="/usr/local/cuda-10.2/lib64 /usr/local/lib/cuda10.2/lib64"
+###############################################################################################
+# First, make sure this is not being executed and instead is being sourced.
+if [[ "$(basename -- "$0")" == "enable-gpu" ]]; then
+    usage
+    echo "Don't run $0, source it" >&2
+    exit 1
+fi
+for cudadir in $cudalibdirs; do
+  if [ -e $cudadir ]; then
+    echo Enabling CUDA/GPU using $cudadir
+    export  JAVA_OPTIONS="-Djava.library.path=$cudadir $JAVA_OPTIONS"
+    export LD_LIBRARY_PATH="$cudadir:$LD_LIBRARY_PATH"
+    return
+  fi
+done

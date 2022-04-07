@@ -1,0 +1,84 @@
+# /*******************************************************************************
+#  * Copyright [2022] [IBM]
+#  *
+#  * Licensed under the Apache License, Version 2.0 (the "License");
+#  * you may not use this file except in compliance with the License.
+#  * You may obtain a copy of the License at
+#  *
+#  *     http://www.apache.org/licenses/LICENSE-2.0
+#  *
+#  * Unless required by applicable law or agreed to in writing, software
+#  * distributed under the License is distributed on an "AS IS" BASIS,
+#  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  * See the License for the specific language governing permissions and
+#  * limitations under the License.
+#  *******************************************************************************/
+metadata:
+  name: Nearest Neighbor 
+  visible: false	# Hide from the workbench in favor of nn-merge.jsyt
+  macroDefinitions:
+  - { name: windowSizeMsec , displayName: "Window size (msec)", description: "Sub-window size on which to compute raw features.",  
+      defaultValue: 40, type: float, min: 20  }
+  - { name: windowShiftPercent, displayName: "Window shift (%)", description: "Percentage of the window size to shift when computing the next sub-window.",  
+      defaultValue: 50, choices: [0, 25, 50, 75] } 
+  - { name: resamplingRate, displayName: "Re-sampling rate (htz)", description: "Sampling rate to which all data is normalize.",  defaultValue: 44100, type: integer } 
+  - { name: featureExtractor, displayName: "Feature extractor", description: "Type of features to extract from data",  defaultValue: MFCC, choices: [MFCC, FFT, LogMel] }
+  - { name: minFreq, displayName: "Minimum frequency (htz)", description: "Minimum frequency to include in computed features",  defaultValue: 20, type: integer, min: 1 }
+  - { name: maxFreq, displayName: "Maximum frequency (htz)", description: "Maximum frequency to include in computed features",  defaultValue: 20000, type: integer, min: 1 }
+  - { name: featureLen, displayName: "Feature length", description: "The length of the feature vector.",  defaultValue: 64,  type: integer, min: 1 }
+  - { name: deltaProcessor, displayName: "Difference features", description: "Include 1st and 2nd order time derivative of spectrogram.",  defaultValue: false, choices: [false, true] }
+  - { name: normalizeProcessor, displayName: "Normalize features", description: "Normalize each spectrogram",  defaultValue: false, choices: [false, true] }
+  - { name: pValue, description: "P, value use to compute distance",  defaultValue: 0.5, choices: [0.5,1.0,2.0] }
+  - { name: maxListSize, description: "Number of features to keep before merging starts",  defaultValue: 1000, choices: [500,1000,2000,4000] }
+  - { name: stddevMultiplier, description: "Number of standard deviations outside which outlier/unknown designation is generated. Smaller values reduce the number of outliers",  
+      defaultValue: 3.0, choices: [0.1, 1.0, 2.0, 3.0, 4.0 ] }
+  - { name: enableOutliers, description: "", defaultValue: false, choices: [true, false] }
+templateText: |-
+  var pValue=${pValue} 
+  var maxListSize=${maxListSize} 
+  var stddevMultiplier=${stddevMultiplier} 
+  var enableOutliers=${enableOutliers} 
+  
+  // Feature parameters
+  var fe;
+  var fp = null;
+  var resamplingRate=${resamplingRate}
+  var minFreq=${minFreq}
+  var maxFreq=${maxFreq}
+  var windowSizeMsec=${windowSizeMsec}
+  var windowShiftMsec=windowSizeMsec * ${windowShiftPercent}/100.0 
+  var featureLen=${featureLen}
+  var transform=null
+  var useDiskCache=false
+  var featureExtractor='${featureExtractor}'
+  var normalizeProcessor='${normalizeProcessor}'
+  var deltaProcessor='${deltaProcessor}'
+  // Define the feature extractor
+  if (featureExtractor === 'FFT') {
+    fe = new FFTFeatureExtractor(resamplingRate, minFreq, maxFreq, false, true, featureLen)
+  } else if (featureExtractor === 'LogMel') {
+  	fe = new LogMelFeatureExtractor(resamplingRate, featureLen, minFreq, maxFreq, 0)
+  } else {	// MFCC
+    fe = new MFCCFeatureExtractor(resamplingRate, featureLen, minFreq, maxFreq, featureLen);
+  }
+  // Define the feature processor 
+  if (normalizeProcessor === 'true')  
+  	fp = new NormalizingFeatureProcessor(true,true,true,true)
+  if (deltaProcessor === 'true')  {
+    var dfp = new DeltaFeatureProcessor(2,[1,1,1]);
+  	if (fp != null) 
+  	    fp = new PipelinedFeatureProcessor(fp,dfp)
+  	else
+  	    fp = dfp
+  }
+  // Build the feature gram extractor 
+  var fge = new FeatureGramDescriptor(windowSizeMsec, windowShiftMsec, fe, fp); 
+  
+  var builder = new LpDistanceMergeKNNClassifierBuilder()
+  builder.setEnableOutlierDetection(enableOutliers)
+  builder.setParamP(pValue)
+  builder.setMaxListSize(maxListSize)
+  if (enableOutliers)  // Can't set multipler if outliers is not enabled.
+    builder.setStdDevFactor(stddevMultiplier); 
+  builder.setFeatureGramDescriptor(fge);
+  var classifier = builder.build();

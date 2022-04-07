@@ -1,0 +1,74 @@
+#!/bin/bash
+#*******************************************************************************
+# * Copyright [2022] [IBM]
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *******************************************************************************
+cmd=$0
+function usage() {
+    echo ''
+    echo Usage: "$cmd <java class>"
+    echo "Start a main() method of a java class "
+    echo "-Dfoo=bar type options are interpreted as Java system"
+    echo "properties and moved to the front of the argument list ahead"
+    echo "of any other arguments."
+    echo Examples:
+    echo   $cmd org.eng.pml.util.DBTool 
+    echo   $cmd org.eng.pml.SomeClass -Dfoo=bar
+
+}
+args=
+sysProps=
+while [ $# -ne 0 ]; do
+	case $1 in 
+		-D*=*)
+	    	sysProps="$sysProps $1"
+	    ;;
+	    *)  args="$args $1"
+	    ;;
+	esac
+	shift;
+done
+if [ -z "$args" ]; then 
+    echo ERROR: Missing Java class 
+    usage
+    exit 1 
+fi
+if [ -z "$AISP_HOME" ]; then 
+   echo Setting AISP_HOME and PATH automatically
+   export AISP_HOME=$(cd -P -- "$(dirname -- "$0")" && cd -P .. && pwd -P)
+   export PATH=$AISP_HOME/bin:$PATH
+fi
+export WPML_HOME="$AISP_HOME"
+CP=$AISP_HOME/lib/'*'
+if [ ! -z "$CLASSPATH" ]; then
+    CP="$CP:$CLASSPATH"
+fi
+isCygwin=`echo $CP | grep cygdrive`
+if [ ! -z "$isCygwin" ]; then 
+    # For cygwin, convert the class path to be a DOS classpath
+    CP=`echo $CP | sed -e 's?:?;?g'`				# colon path separators to semi-colons 
+    CP=`echo $CP | sed -e 's?/cygdrive/\([a-z]\)/?\1:/?g'`	# /cygdrive/x/... to x:/...
+    CP=`echo $CP | sed -e 's?/?\\\\?g'`				# forward slash to backslash
+fi
+export CLASSPATH="$CP"
+# Run any enablers (think python and gpu) 
+enablers=$(ls $AISP_HOME/bin/enable-*)
+if [ ! -z "$enablers" ]; then
+   for e in $enablers; do
+       source $e 
+   done
+fi
+#echo CLASSPATH=$CLASSPATH
+# Do the actual work!
+java  $JAVA_OPTIONS -Djava.util.logging.config.file=$AISP_HOME/lib/caa.properties -Dlogback.configurationFile=$AISP_HOME/lib/logback.xml $sysProps $args 

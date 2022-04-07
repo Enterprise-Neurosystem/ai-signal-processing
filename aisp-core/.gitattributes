@@ -1,0 +1,6 @@
+scripts/* linguist-vendored
+build/* linguist-vendored
+buildsys_dmeo_paper/* linguist-vendored
+test-data/* linguist-vendored
+doc-data/* linguist-vendored
+bin/* linguist-vendored

@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+        <groupId>org.eng.aisp</groupId>
+        <artifactId>aisp.root</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <packaging>pom</packaging>
+
+  <artifactId>aisp.core</artifactId>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <modules>
+ 	<module>aisp-core-main</module> 
+ 	<module>aisp-core-samples</module> 
+  </modules>
+  
+  <build>
+  <plugins>
+       <!-- Add this so a separate jar is created with the test classes -->
+    <plugin>
+    	<groupId>org.apache.maven.plugins</groupId>
+    	<artifactId>maven-jar-plugin</artifactId>
+    	<version>2.6</version>
+    	<executions>
+    		<execution>
+    			<id>Jar Package</id>
+    			<phase>package</phase>
+    			<goals>
+    				<goal>jar</goal>
+    			</goals>
+    		</execution>
+    		<execution>
+    			<id>Jar Tests Package</id>
+    			<phase>package</phase>
+    			<goals>
+    				<goal>test-jar</goal>
+    			</goals>
+    		</execution>
+    	</executions>
+    </plugin> 
+<!--
+    <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.1</version>
+        <executions>
+          <execution>
+            <id>bundle-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+              <goal>test-jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+-->
+        <!-- Added for aggregated javadoc, see https://maven.apache.org/plugins/maven-javadoc-plugin/examples/aggregate-dependency-sources.html --> 
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-source-plugin</artifactId>
+      <version>3.0.0</version>
+      <executions>
+        <execution>
+          <id>attach-sources</id>
+          <goals>
+            <goal>jar</goal>
+          </goals>
+        </execution>
+          <execution>
+            <id>bundle-sources</id>
+            <phase>package</phase>
+            <goals>
+              <!-- produce source artifact for main project sources -->
+              <goal>jar-no-fork</goal>
+              
+              <!-- produce source artifact for project test sources -->
+              <goal>test-jar-no-fork</goal>
+            </goals>
+          </execution>
+      </executions>
+    </plugin>
+    <plugin>
+    	<groupId>org.apache.maven.plugins</groupId>
+  		<artifactId>maven-javadoc-plugin</artifactId>
+		<version>2.9.1</version>
+  		<executions>
+    		<execution>
+      		<id>attach-javadocs</id>
+      		<goals>
+        		<goal>jar</goal>
+      		</goals>
+           <configuration>
+              <!-- switch on dependency-driven aggregation -->
+              <includeDependencySources>true</includeDependencySources>
+              <dependencySourceIncludes>
+                <!-- include ONLY dependencies we control -->
+                <dependencySourceInclude>com.ibm.research.sound:*</dependencySourceInclude>
+              </dependencySourceIncludes>
+              <additionalparam>-Xdoclint:none</additionalparam> <!-- add this to ignore errors on Java 8 javadoc -->
+		<!-- avoid Java 11 module errors -->
+	      <source>8</source>
+    	      <detectJavaApiLink>false</detectJavaApiLink>
+            </configuration>
+    		</execution>
+  		</executions>
+  		<configuration>
+              <!-- switch on dependency-driven aggregation -->
+              <includeDependencySources>true</includeDependencySources>
+              <dependencySourceIncludes>
+                <!-- include ONLY dependencies we control -->
+                <dependencySourceInclude>com.ibm.research.sound:*</dependencySourceInclude>
+              </dependencySourceIncludes>
+              <additionalparam>-Xdoclint:none</additionalparam> <!-- add this to ignore errors on Java 8 javadoc -->
+        </configuration>
+  	 </plugin>
+	<plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-scm-publish-plugin</artifactId>
+		<version>3.0.0</version>
+		<configuration>
+			<checkoutDirectory>${project.build.directory}/scmpublish</checkoutDirectory>
+			<checkinComment>Publishing javadoc for
+				${project.artifactId}:${project.version}</checkinComment>
+			<!-- <content>${project.reporting.outputDirectory}/apidocs</content> -->
+			<content>IoT-Sound-Xtended/target/site/apidocs</content>
+			<skipDeletedFiles>true</skipDeletedFiles>
+			<pubScmUrl>scm:git:git@github.ibm.com:asset-development-coc/acoustic-analyzer.git</pubScmUrl>
+			<scmBranch>gh-pages</scmBranch> <!-- branch with static site -->
+		</configuration>
+	</plugin>
+      <plugin>
+      <!-- mvn license:aggregate-third-party-report, 
+           then see target/site/aggregate-third-party-report.html -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.19</version>
+        <executions>
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+   </plugins>
+
+  </build>
+
+  <dependencies> 
+      <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies> 
+
+  </project>

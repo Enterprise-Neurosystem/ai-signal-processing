@@ -1,0 +1,62 @@
+#!/bin/bash
+#*******************************************************************************
+# * Copyright [2022] [IBM]
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *******************************************************************************
+function usage() {
+cat <<EOF
+Sets up the Linux environment for the AISP tools and runtime.
+Optionally installs:
+  1) CUDA libraries need for GPU acceleration.
+Options:
+  -gpu : if given, the CUDA libraries are installed.
+  -h : presents this text.
+Examples:
+  % $cmd # installs base requirements and no GPU support. 
+  % $cmd -gpu # installs base requirements and CUDA 
+EOF
+}
+gpu=false
+cmd=$(basename $0)
+# Default set of packages always installed.
+packages="alsa-base alsa-utils"
+#
+# Parse the arguments.
+#
+while [ $# -ne 0 ]; do
+	case $1 in
+        -gpu) gpu=true ;;
+		-h*) usage; exit 0; shift ;;
+	    *) echo  Unrecognized argument $1; usage; exit 1
+	    ;;
+	esac
+	shift;
+done
+bindir=$(dirname "$0")
+source $bindir/utils.sh 
+os=$(get_os)
+echo $os
+# Add any OS-specific packages.
+case $os in
+   redhat) packages="gcc $packages" ;;  # gcc is not tested as of 6/2021
+   ubuntu|debian) packages="build-essential $packages" ;;
+   *) echo Unrecognized O/S. Exiting.; exit 1 ;; 
+esac
+echo Installing $packages
+install_packages $packages
+if [ "$gpu" == "true" ]; then
+    cmd="$bindir/setup-aisp-gpu" 
+    echo Setting up CUDA with "'"$cmd"'"
+    sudo $cmd
+fi

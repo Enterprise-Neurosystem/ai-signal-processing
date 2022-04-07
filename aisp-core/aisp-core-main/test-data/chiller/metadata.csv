@@ -1,0 +1,11 @@
+File,Sensor,Labels
+chiller-1.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC1;age=old;status=normal;symptom=unknown,
+chiller-2.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC1;age=old;status=normal;symptom=unknown,
+chiller-3.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC2;age=old;status=normal;symptom=unknown,
+chiller-4.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=unknown;status=noisy;symptom=fan,
+chiller-5.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=unknown;status=noisy;symptom=fan,
+chiller-6.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=new;status=normal;symptom=fan,
+chiller-7.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=unknown;status=noisy;symptom=fan,
+chiller-8.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=new;status=normal;symptom=fan,
+chiller-9.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=new;status=normal;symptom=fan
+chiller-10.wav,https://www.youtube.com/watch?v=NBdcu1nlqOg,source=HVAC3;age=new;status=normal;symptom=fan,

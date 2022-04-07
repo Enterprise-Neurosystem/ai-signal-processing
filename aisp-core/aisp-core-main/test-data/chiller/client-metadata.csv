@@ -1,0 +1,4 @@
+File,Sensor,Labels
+../sounds/chiller-1.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC1;status=normal
+../sounds/chiller-2.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC1;status=normal
+../sounds/chiller-3.wav,https://www.youtube.com/watch?v=KZbcOQb7FF8,source=HVAC2;status=normal

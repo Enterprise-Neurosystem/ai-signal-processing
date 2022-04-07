@@ -1,0 +1,57 @@
+#!/bin/bash
+#*******************************************************************************
+# * Copyright [2022] [IBM]
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *******************************************************************************
+function usage() {
+cat << USAGE
+Creates a metadata.csv formatted file on standard out from one or more wav files. 
+Labels are derived from the file name and include everything up to _[0-9]+.*.wav
+Options:
+  -l labelname : the name of the label to use in the output. Default is $labelname.
+  -h : show help
+Usage:
+   $0 dir/*.wav *.wav
+   $0 *.wav -l mylabel
+USAGE
+}
+cmd=$0
+args=
+labelname=source
+while [ $# -ne 0 ]; do
+	case $1 in 
+	    -l) labelname="$2"; shift;;
+	    -h*) usage; exit 0;;
+	    -*) echo Unrecognized option $1; usage; exit 2;; 
+	    *) args="$args $1";; 
+	esac
+	shift;
+done
+for i in $args; do
+  if [ -d $i ]; then
+	  files=$(cd $i; ls *.wav);
+	  for f in $files; do
+	     #label=$(echo $i | sed -e 's?.*/??g' -e 's/\.wav//g' -e 's/_.*//g')
+	     label=$(echo $i | sed -e 's?.*/??g' -e 's/\.wav//g' -e 's/^\([a-zA-Z_]*\)_.*/\1/g')
+	     echo $i/$f,$labelname=$label,
+	  done
+  elif [ -e $i ];  then
+	  #label=$(echo $i | sed -e 's?.*/??g' -e 's/\.wav//g' -e 's/_[0-9]+.*//g')
+	  label=$(echo $i | sed -e 's?.*/??g' -e 's/\.wav//g' -e 's/^\([a-zA-Z_]*\)_.*/\1/g')
+	  echo $i,$labelname=$label,
+  else 
+     echo $i is not found or not a file. 
+     exit 1
+  fi
+done

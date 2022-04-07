@@ -1,0 +1,2 @@
+On Windows 10, as administrator, run this to allow connections to mongo port 27017
+	netsh advfirewall firewall add rule name="Open mongod port 27017" dir=in action=allow protocol=TCP localport=27017

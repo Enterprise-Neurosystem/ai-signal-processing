@@ -1,0 +1,8 @@
+metadata:
+  name: JunitClassifier 
+  macroDefinitions:
+  - { name: stringValue, description: "",  defaultValue: string }
+  - { name: integerValue, description: "",  defaultValue: 1, type: integer }
+  - { name: doubleValue, description: "",  defaultValue: 2.0, type: float} 
+templateText: |-
+  var classifier = new JunitClassifier("${stringValue}", ${integerValue}, ${doubleValue})

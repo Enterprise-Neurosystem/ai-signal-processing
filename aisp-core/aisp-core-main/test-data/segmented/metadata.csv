@@ -1,0 +1,5 @@
+chiller-1.wav[0-1000],segment=0,
+chiller-1.wav[1000-3000],segment=1,
+chiller-1.wav[0-3000],segment=2,
+../sounds/chiller-2.wav[2000-3000],segment=3,
+../sounds/chiller-3.wav,segment=4,
