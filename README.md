@@ -1,6 +1,5 @@
 # ai-signal-processing
-Framework, Tools and Solutions for processing high-rate signal data such as acoustics, vibrations, etc. 
-See bee population monitoring example
+Framework, Tools and Solutions for processing high-rate signal data such as acoustics, vibrations, etc. See the <a href="https://github.com/Enterprise-Neurosystem/ai-signal-processing/wiki">wiki</a> for documentation.
 
 Please subscribe to the Community mailer to participate in asynchronous discussions. https://lists.enterpriseneurosystem.org/admin/lists/community.lists.enterpriseneurosystem.org/
 
