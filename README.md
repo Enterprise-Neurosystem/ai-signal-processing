@@ -11,6 +11,8 @@ See bee population monitoring example
 6. See the wiki to enable and use the CLI
 
 ## Dependency
+Artifacts are not currently published to any public maven repositories, but if you build locally you can use
+the following dependency in your projects.
 ```xml
 <dependency>
    <groupId>org.eng.aisp</groupId>
