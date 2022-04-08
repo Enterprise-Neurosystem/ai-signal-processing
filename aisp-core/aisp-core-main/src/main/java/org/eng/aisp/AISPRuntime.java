@@ -29,10 +29,7 @@ import org.eng.cache.MemoryCache;
 import org.eng.util.CachingIterable;
 
 /**
- * Helper class to allow us to dynamically load classes that may or may not be on the class path.
- * This is to help use migrate to the AI product which does not want to include some code, that is, Mongo, Spark, etc.
- * <p>
- * TODO: This class could/should eventually be moved into the client side project.  Be aware, it would need to pull some other classes for labeled feature extraction.
+ * Helper class to allow us to dynamically load classes that may optionally be on the class path.
  * @author dawood
  *
  */
@@ -62,6 +59,9 @@ public class AISPRuntime {
 		runtime = obj == null ? new AISPRuntime() : (AISPRuntime)obj;
 	}
 
+	protected AISPRuntime() {
+		
+	}
 	/**
 	 * Get the active AISP runtime that can be used to alter behavior per methods implemented here.
 	 * @return never null.
@@ -69,42 +69,17 @@ public class AISPRuntime {
 	public static AISPRuntime getRuntime() { return runtime; }
 	
 	/**
-	 * Get a disk caching iterable over the labeled features if a disk cache implementation is on the class path.
-	 * @param lfg the iterable over which we are caching.
-	 * @param memCache optional memory cache to back the disk cache. may be null.
-	 * @return null if we could not load the class to help us to caching.
-	 * @throws RuntimeException if class found, but does not have the expected constructors.
+	 * Get a disk caching iterable over the given iterable.  This implementation returns null, but extending run-times may override this to provide a disk caching implementation. 
+	 * @param <FDATA>
+	 * @param lfg
+	 * @param memCache	the memory cache to back that the disk cache.
+	 * @return null if not available.
 	 */
 	protected <FDATA> Iterable<ILabeledFeatureGram<FDATA>[]> getDiskCachingIterable(Iterable<ILabeledFeatureGram<FDATA>[]> lfg, MemoryCache<?,?> memCache) {
-		Class<?> klass; 
-		String className = "org.eng.cache.mongo.MongoCachingLabeledFeatureIterable";
-		try {
-			klass = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			return null;
-		}
-		Constructor constructor;
-		try {
-			constructor = klass.getConstructor(Iterable.class, MemoryCache.class);
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new RuntimeException("Found class " + klass.getName() 
-				+ ", but could not find the expected constructor taking the following argument types"
-				+ Iterable.class.getName() + " and " + MemoryCache.class.getName(), e);
-		}
-
-		Object newObj;
-		try {
-			newObj = constructor.newInstance(lfg, memCache);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException("Found constructor " + constructor.getName() 
-				+ ", but could not invoke to create new instance", e); 
-		}
-		if (newObj instanceof CachingIterable)
-			return  (CachingIterable)newObj;
-
 		return null;
 		
 	}
+
 
 	private final static String FEATURE_CACHING_ENABLED_PROPERTY_NAME = "labeled.feature.gram.caching.enabled";
 	private final static boolean FEATURE_CACHING_ENABLED_DEFAULT = false;

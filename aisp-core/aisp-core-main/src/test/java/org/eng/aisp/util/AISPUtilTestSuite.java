@@ -28,7 +28,6 @@ import org.junit.runners.Suite;
 	MutatingShuffleIterableTest.class,
 	CachingIterableTest.class,
 	MemoryCachingIterableTest.class,
-//	MongoShuffledStoredWindowIterableTest.class,	// Not passing?!
 	LabeledWindowShuffleIterableTest.class,
 	GroupedLabelValueWindowIterableTest.class,
 	BalancedLabeledWindowShuffleIterableTest.class,

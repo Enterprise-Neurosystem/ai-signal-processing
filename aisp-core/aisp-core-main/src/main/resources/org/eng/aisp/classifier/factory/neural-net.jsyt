@@ -30,8 +30,6 @@ metadata:
   - { name: layerDefinition, displayName: "Layer definition", description: "Selects different layer definitions",
       defaultValue: DCASE, choices: [ CNN, DCASE] }
   - { name: maxEpochs, displayName: "Maximum # of epochs", description: "The maximum number of epochs to use to train the model.",  defaultValue: 200,  type: integer, min: 1  }
-  - { name: useDiskCache, displayName: "Use Disk Cache", description: "Disk caching should be used for large amounts of data, 
-        but is only available on the workbench/servers and installation with mongo installed.",  defaultValue: false,  type: boolean, choices: [false, true ]  }
 templateText: |-
   // Model parameters
   var useDiskCache=false

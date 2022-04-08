@@ -22,24 +22,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.eng.aisp.AISPException;
-import org.eng.aisp.AISPLibraryInitializer;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.classifier.ConfusionMatrix;
 import org.eng.aisp.classifier.IClassifier;
 import org.eng.aisp.classifier.IFixedClassifier;
 import org.eng.aisp.classifier.KFoldModelEvaluator;
 import org.eng.aisp.classifier.ModelUtil;
-import org.eng.aisp.classifier.TrainingSetInfo;
 import org.eng.aisp.classifier.ModelUtil.ClassifierPerformance;
+import org.eng.aisp.classifier.TrainingSetInfo;
 import org.eng.aisp.classifier.TrainingSetInfo.LabelInfo;
 import org.eng.aisp.classifier.TrainingSetInfo.LabelValueInfo;
 import org.eng.aisp.classifier.factory.JScriptClassifierMapFactory;
-import org.eng.aisp.util.LabeledWindowShuffleIterable;
 import org.eng.util.CommandArgs;
 import org.eng.util.FileUtils;
 import org.eng.util.IShuffleIterable;
 import org.eng.util.OnlineStats;
-import org.eng.util.StringUtil;
 
 public class Evaluate {
 	private final static int DEFAULT_HISTORICAL_ITERATIONS = 3;
@@ -112,7 +110,8 @@ public class Evaluate {
 			;
 
 	public static void main(String args[]) {
-		AISPLibraryInitializer.Initialize();
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrights, etc.
 		CommandArgs cmdargs = new CommandArgs(args);
 		boolean verbose = cmdargs.getFlag("v") || cmdargs.getFlag("verbose"); 

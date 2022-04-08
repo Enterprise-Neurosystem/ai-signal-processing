@@ -105,7 +105,6 @@ public enum DataTypeEnum {
 
 	/**
 	 * The name of the tag that holds the type of data in the pcm/wav data.
-	 * Note that we use a ':' instead of '.' because Mongo seems unhappy with it.
 	 * <p>
 	 * <b>Note:</b>The use of this constant is discouraged in favor of {@link #setDataType(Properties, DataTypeEnum)} or
 	 * {@link #getDataType(Properties)} or {@link #getDataType(Map)}.
@@ -174,18 +173,4 @@ public enum DataTypeEnum {
 		return 1;
 	}
 		
-//		/**
-//		 * Get a FieldValues object that is suitable for searching in Mongo on the tags in a
-//		 * ITaggedEntity instance and whose tags contains the value(s) created through
-//		 * {@link #addDataType(Properties, DataTypeEnum)}.
-//		 * @param dataType
-//		 * @return never null unless dataType is null
-//		 */
-//		public static FieldValues getTagFieldValue(DataTypeEnum dataType) {
-//			if (dataType == null)
-//				return null;
-//			FieldValues fv = new FieldValues();
-//			fv.put(TaggedEntity.TAGS_FIELD_NAME + "." + DataTypePropertyName, dataType.name());
-//			return fv;
-//		}
 }

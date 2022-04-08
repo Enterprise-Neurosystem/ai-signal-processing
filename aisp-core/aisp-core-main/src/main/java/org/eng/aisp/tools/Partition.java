@@ -27,7 +27,7 @@ import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.eng.aisp.AISPException;
-import org.eng.aisp.AISPLibraryInitializer;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.dataset.IReferencedSoundSpec;
 import org.eng.aisp.dataset.MetaData;
 import org.eng.aisp.dataset.ReferencedSoundSpec;
@@ -67,7 +67,8 @@ public class Partition {
 			;
 
 	public static void main(String args[]) {
-		AISPLibraryInitializer.Initialize();
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrights, etc.
 		CommandArgs cmdargs = new CommandArgs(args);
 

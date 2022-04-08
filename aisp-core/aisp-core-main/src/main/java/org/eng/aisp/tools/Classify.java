@@ -35,14 +35,14 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletMapping;
 import org.eng.aisp.AISPException;
-import org.eng.aisp.AISPLibraryInitializer;
 import org.eng.aisp.AISPLogger;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.SoundClip;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.classifier.Classification;
+import org.eng.aisp.classifier.Classification.LabelValue;
 import org.eng.aisp.classifier.ConfusionMatrix;
 import org.eng.aisp.classifier.IFixedClassifier;
-import org.eng.aisp.classifier.Classification.LabelValue;
 import org.eng.aisp.client.IAsyncSensorClient;
 import org.eng.aisp.client.IAsyncSensorClient.ICommandListener;
 import org.eng.aisp.dataset.MetaData;
@@ -131,7 +131,8 @@ public class Classify implements ICommandListener {
 		PrintStream stdout = System.out;
 		System.setOut(System.err);
 
-		AISPLibraryInitializer.Initialize();
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrites, etc.
 		
 		CommandArgs cmdargs = new CommandArgs(args);

@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.Properties;
 
 import org.eng.aisp.AISPException;
-import org.eng.aisp.AISPLibraryInitializer;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.SoundClip;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.dataset.MetaData;
@@ -65,8 +65,8 @@ public class Capture {
 			;
 
 	public static void main(String args[]) {
-		AISPLibraryInitializer.Initialize();
-//		Storage.soundStorage();	// Get log4j messages out of the way.
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrights, etc.
 		
 		CommandArgs cmdargs = new CommandArgs(args);

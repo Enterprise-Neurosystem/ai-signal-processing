@@ -17,7 +17,7 @@ package org.eng.aisp.tools;
 
 import java.io.IOException;
 
-import org.eng.aisp.AISPLibraryInitializer;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.classifier.IFixedClassifier;
 import org.eng.aisp.util.FixedClassifiers;
 import org.eng.aisp.util.GsonUtils;
@@ -39,7 +39,8 @@ public class ModelInfoTool {
 
 	
 	public static void main(String args[]) {
-		AISPLibraryInitializer.Initialize();
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrights, etc.
 		
 		CommandArgs cmdargs = new CommandArgs(args);

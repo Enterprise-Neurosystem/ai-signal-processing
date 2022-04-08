@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.eng.aisp.AISPException;
-import org.eng.aisp.AISPLibraryInitializer;
+import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.DataTypeEnum;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.classifier.IClassifier;
@@ -70,7 +70,8 @@ public class Train {
 			;
 
 	public static void main(String args[]) {
-		AISPLibraryInitializer.Initialize();
+		// Force any framework initialization messages to come out first.
+		AISPRuntime.getRuntime();
 		System.out.println("\n");	// blank line to separate copyrights, etc.
 		CommandArgs cmdargs = new CommandArgs(args);
 		boolean verbose = cmdargs.getFlag("v") || cmdargs.getFlag("verbose"); 	
