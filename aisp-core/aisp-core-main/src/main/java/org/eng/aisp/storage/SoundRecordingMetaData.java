@@ -22,12 +22,10 @@ import java.util.Properties;
 
 import org.eng.aisp.AbstractDataWindow;
 import org.eng.aisp.IDataWindow;
-import org.eng.aisp.IDataWindow;
+import org.eng.aisp.LabeledDoubleWindow;
 import org.eng.aisp.SensorRecording;
 import org.eng.aisp.SoundClip;
 import org.eng.aisp.SoundRecording;
-import org.eng.aisp.IDataWindow.PadType;
-import org.eng.aisp.storage.SoundRecordingMetaData.SoundClipMetaData;
 import org.eng.aisp.util.PCMUtil;
 import org.eng.util.Vector;
 
@@ -35,11 +33,11 @@ import org.eng.util.Vector;
  * A data container class used only for transmitting meta data about sound clips and sound recordings. 
  * @author dawood
  */
-public class SoundRecordingMetaData extends SensorRecording<SoundClipMetaData> {
+public class SoundRecordingMetaData extends LabeledDoubleWindow {
 
 	private static final long serialVersionUID = -5361963784036021949L;
-	public static String START_MSEC_FIELD_NAME = SensorRecording.DATA_WINDOW_FIELD_NAME + "." + SoundClipMetaData.START_MSEC_FIELD_NAME;
-	public static String END_MSEC_FIELD_NAME =   SensorRecording.DATA_WINDOW_FIELD_NAME + "." + SoundClipMetaData.END_MSEC_FIELD_NAME;
+	public static String START_MSEC_FIELD_NAME = LabeledDoubleWindow.DATA_WINDOW_FIELD_NAME + "." + SoundClipMetaData.START_MSEC_FIELD_NAME;
+	public static String END_MSEC_FIELD_NAME =   LabeledDoubleWindow.DATA_WINDOW_FIELD_NAME + "." + SoundClipMetaData.END_MSEC_FIELD_NAME;
 	final String name;
 
 	/**
@@ -154,7 +152,12 @@ public class SoundRecordingMetaData extends SensorRecording<SoundClipMetaData> {
 //		SoundRecording newSR = new SoundRecording(this.getDeployedSensorID(), newClip, this.getLabels(),this.getTagsAsProperties(), this.isTrainable());
 //		return newSR;
 	}
-	
+
+	@Override // to refine the return type.
+	public SoundClipMetaData getDataWindow() {
+		return (SoundClipMetaData)this.dataWindow;
+	}
+
 	/**
 	 * Create a new SoundRecording instance that is built from the given SoundRecording and the metadata in this instance.
 	 * Applied metadata includes
@@ -239,7 +242,7 @@ public class SoundRecordingMetaData extends SensorRecording<SoundClipMetaData> {
 	 * @throws IOException if wav is malformed.
 	 */
 	public SoundRecording newSoundRecording(byte[] wav) throws IOException {
-		SoundClip clip = this.dataWindow.newSoundClip(wav);
+		SoundClip clip = this.getDataWindow().newSoundClip(wav);
 		SoundRecording sr = new SoundRecording(clip, this.getLabels(), this.getTagsAsProperties(), this.isTrainable(), null); 
 		return sr;
 	}

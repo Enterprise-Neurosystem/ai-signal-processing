@@ -21,12 +21,44 @@ public class LabeledDoubleWindow extends LabeledDataWindow<double[]> implements 
 	
 	private static final long serialVersionUID = -3487832402564913520L;
 	
+	// For Jackson/Gson
+	protected LabeledDoubleWindow() {
+		super();
+	}	
+	
 	/**
 	 * @param window typically a DoubleWindow or other implementation of IDataWindow.
 	 * @param labels the labels associated with the window.
 	 */
 	public LabeledDoubleWindow(IDataWindow<double[]> window, Properties labels) {
-		super(window, labels, null);
+		super(window, labels);
 	}
+
+	protected LabeledDoubleWindow(IDataWindow<double[] >dataWindow, Properties labels, Properties tags, boolean isTrainable, DataTypeEnum dataType) {
+		super(dataWindow, labels, tags, isTrainable, dataType);
+//		if (dataWindow == null)
+//			throw new IllegalArgumentException("dataWindow must not be null");
+//		this.dataWindow = dataWindow;
+//		this.isTrainable = isTrainable;
+//
+//		if (dataType != null) {
+//			Properties p = DataTypeEnum.setDataType(null, dataType);
+//			this.addTags(p);
+//		}
+//		
+//		// We require a limited set of types to be used in Properties so Gson can de/serialize them.
+//		if (labels != null) {
+//			for (Object key : labels.keySet()) {
+//				if (!(key instanceof String))
+//					throw new IllegalArgumentException("Labels must use only Strings as keys");
+//				Object value = labels.get(key);
+//				if (!(value instanceof String || value instanceof Number))
+//					throw new IllegalArgumentException("Label values must be one of String or Number. Value with key "
+//							+ key + " has value of type " + value.getClass().getName());
+//				this.labels.put(key, value);
+//			}
+//		}
+	}
+
 
 }

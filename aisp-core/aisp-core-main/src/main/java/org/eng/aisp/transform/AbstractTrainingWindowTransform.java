@@ -53,7 +53,7 @@ public abstract class AbstractTrainingWindowTransform<WINDATA> implements ITrain
 		List<IDataWindow<WINDATA>> dwList = getMutatedWindows(trainingLabel, ldw);
 		if (dwList != null && dwList.size() > 0) {
 			for (IDataWindow<WINDATA> newDW : dwList) {
-				ILabeledDataWindow<WINDATA> newLDW = new LabeledDataWindow<WINDATA>(newDW, ldw.getLabels(), ldw.getTags(), ldw.isTrainable());
+				ILabeledDataWindow<WINDATA> newLDW = new LabeledDataWindow<WINDATA>(newDW, ldw.getLabels(), ldw.getTagsAsProperties(), ldw.isTrainable());
 				windowList.add(newLDW);
 			}
 		}

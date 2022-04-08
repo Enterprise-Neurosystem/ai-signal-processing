@@ -29,7 +29,7 @@ import org.eng.util.IShuffleIterable;
  * @author dawood
  *
  */
-public class SoundRecording extends SensorRecording<SoundClip> {
+public class SoundRecording extends LabeledDoubleWindow {
 
 	private static final long serialVersionUID = -6929026660073315189L;
 	public static final String CLIP_FIELD_NAME = DATA_WINDOW_FIELD_NAME;

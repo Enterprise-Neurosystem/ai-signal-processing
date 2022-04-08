@@ -180,7 +180,7 @@ public class Augment {
 
 		@Override
 		public List<SoundClip> transform(SoundClip clip) {
-			LabeledDataWindow<double[]> tmpLDW = new LabeledDataWindow<double[]>(clip, labels, null);
+			LabeledDataWindow<double[]> tmpLDW = new LabeledDataWindow<double[]>(clip, labels);
 			Iterable<ILabeledDataWindow<double[]>> mixedLDW= trainingWindowTransform.apply(null, tmpLDW);
 			List<SoundClip> clipList = new ArrayList<SoundClip>();
 			for (ILabeledDataWindow<double[]> ldw : mixedLDW) {

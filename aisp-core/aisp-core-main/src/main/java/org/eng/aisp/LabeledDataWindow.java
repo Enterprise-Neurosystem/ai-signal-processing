@@ -21,6 +21,9 @@ import java.util.Properties;
 import org.eng.util.TaggedEntity;
 
 public class LabeledDataWindow<WINDATA> extends TaggedEntity implements ILabeledDataWindow<WINDATA> {
+	
+	public final static String DATA_WINDOW_FIELD_NAME = "dataWindow";
+	public final static String LABELS_FIELD_NAME = "labels";
 
 	private static final long serialVersionUID = 2889207103001296924L;
 	protected final Properties labels = new Properties();
@@ -28,22 +31,52 @@ public class LabeledDataWindow<WINDATA> extends TaggedEntity implements ILabeled
 
 	protected boolean isTrainable;
 
+	// For Jackson/Gson
+	protected LabeledDataWindow() {
+		super();
+		dataWindow = null;
+	}
+
 	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels) {
-		this(dataWindow,labels,null);
+		this(dataWindow,labels,(Properties)null);
 	}
 
 	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels, Map<String,String> tags) {
+		this(dataWindow, labels, tags == null ? null : TaggedEntity.getTagsAsProperties(tags));
+	}
+	
+	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels, Properties tags) {
 		this(dataWindow, labels, tags, true);
 	}
 
-	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels, Map<String,String> tags, boolean trainable) {
+	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels, Properties tags, boolean trainable) {
+		this(dataWindow, labels, tags, trainable, null);
+	}
+	
+	public LabeledDataWindow(IDataWindow<WINDATA> dataWindow, Properties labels, Properties tags, boolean isTrainable, DataTypeEnum dataType) {
 		super(tags);
 		if (dataWindow == null)
-			throw new IllegalArgumentException("window can not be null");
+			throw new IllegalArgumentException("dataWindow must not be null");
 		this.dataWindow = dataWindow;
-		if (labels != null)
-			this.labels.putAll(labels);
-		this.isTrainable = trainable;
+		this.isTrainable = isTrainable;
+
+		if (dataType != null) {
+			Properties p = DataTypeEnum.setDataType(null, dataType);
+			this.addTags(p);
+		}
+		
+		// We require a limited set of types to be used in Properties so Gson can de/serialize them.
+		if (labels != null) {
+			for (Object key : labels.keySet()) {
+				if (!(key instanceof String))
+					throw new IllegalArgumentException("Labels must use only Strings as keys");
+				Object value = labels.get(key);
+				if (!(value instanceof String || value instanceof Number))
+					throw new IllegalArgumentException("Label values must be one of String or Number. Value with key "
+							+ key + " has value of type " + value.getClass().getName());
+				this.labels.put(key, value);
+			}
+		}
 	}
 
 	/**
@@ -53,7 +86,7 @@ public class LabeledDataWindow<WINDATA> extends TaggedEntity implements ILabeled
 	 * @param dw
 	 */
 	public LabeledDataWindow(ILabeledDataWindow<WINDATA> ldw, IDataWindow<WINDATA> dw) {
-		this(dw, ldw.getLabels(), ldw.getTags(), ldw.isTrainable());
+		this(dw, ldw.getLabels(), ldw.getTagsAsProperties(), ldw.isTrainable());
 	}
 
 	@Override
@@ -126,5 +159,12 @@ public class LabeledDataWindow<WINDATA> extends TaggedEntity implements ILabeled
 		this.isTrainable = isTrainable;
 		
 	}
-
+	/**
+	 * Get the content type of the data in the array.
+	 * The type is expected to be specified in the tags using a tag as specified in {@link DataTypeEnum#setDataType(Properties, DataTypeEnum)}. 
+	 * @return null if not set. 
+	 */
+	public DataTypeEnum getDataType() {
+		return DataTypeEnum.getDataTypeTag(this);
+	}
 }

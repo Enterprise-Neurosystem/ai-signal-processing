@@ -109,14 +109,23 @@ public class TaggedEntity implements Serializable, ITaggedEntity {
 	}
 	
 	/**
+	 * Convert a map of stings to properties.
+	 * @param tags
+	 * @return never null.
+	 */
+	public static Properties getTagsAsProperties(Map<String,String> tags) {
+		Properties p = new Properties();
+		p.putAll(tags);
+		return p;
+	}
+
+	/**
 	 * Get the tags as a new Properties object.
 	 * @return never null and always an instance independent of this instance.
 	 */
 	@JsonIgnore
 	public Properties getTagsAsProperties() {
-		Properties p = new Properties();
-		p.putAll(this.tags);
-		return p;
+		return getTagsAsProperties(this.tags);
 	}
 
 	/* (non-Javadoc)

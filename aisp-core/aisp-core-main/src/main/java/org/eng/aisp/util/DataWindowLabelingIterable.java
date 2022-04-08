@@ -75,7 +75,7 @@ public class DataWindowLabelingIterable<DATA> extends MutatingIterable<IDataWind
 				}
 			}
 			List<ILabeledDataWindow<DATA>> ldwList = new ArrayList<ILabeledDataWindow<DATA>>();
-			ILabeledDataWindow<DATA> ldw = new LabeledDataWindow<DATA>(item, labels, null);
+			ILabeledDataWindow<DATA> ldw = new LabeledDataWindow<DATA>(item, labels);
 			ldwList.add(ldw);
 			return ldwList;
 		}
