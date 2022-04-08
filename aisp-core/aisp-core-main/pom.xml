@@ -175,11 +175,7 @@
     	<artifactId>snakeyaml</artifactId>
     	<version>1.24</version>            
     </dependency>
-    <dependency>
-        <groupId>org.mongodb</groupId>
-        <artifactId>mongo-java-driver</artifactId>
-        <version>3.2.2</version>
-    </dependency>
+
     <dependency>	<!--  for KMeans -->
     		<groupId>org.deeplearning4j</groupId>
     		<artifactId>nearestneighbor-core</artifactId>
