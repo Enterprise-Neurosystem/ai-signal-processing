@@ -117,16 +117,12 @@ public class SoundCapture extends AbstractAsyncDataProvider<SoundClip> implement
 	 */
 	@Override
 	public void start() throws Exception {
-		if (repeater != null) {
-			if (repeater.isStarted()) {
-				throw new AISPException("Already started.");
-			}
-			repeater = null;
+		if (repeater == null) {
+			SoundCaptureWorker worker = new SoundCaptureWorker(this);
+			repeater = new RepeatingCallable("Monitor", worker);
+			connectAudio();
+			repeater.start();
 		}
-		SoundCaptureWorker worker = new SoundCaptureWorker(this);
-		repeater = new RepeatingCallable("Monitor", worker);
-		connectAudio();
-		repeater.start();
 	}
 
 
