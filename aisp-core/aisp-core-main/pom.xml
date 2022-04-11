@@ -50,6 +50,21 @@
                 </execution>
             </executions>
         </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-scm-publish-plugin</artifactId>
+            <version>3.0.0</version>
+            <configuration>
+                <checkoutDirectory>${project.build.directory}/scmpublish</checkoutDirectory>
+                <checkinComment>Publishing javadoc for
+                                ${project.artifactId}:${project.version}</checkinComment>
+                <content>${project.reporting.outputDirectory}/apidocs</content> 
+                <!-- <content>target/site/apidocs</content> -->
+                <skipDeletedFiles>true</skipDeletedFiles>
+                <pubScmUrl>scm:git:git@github.com:Enterprise-Neurosystem/ai-signal-processing.git</pubScmUrl>
+                <scmBranch>gh-pages</scmBranch> <!-- branch with static site -->
+            </configuration>
+        </plugin>
     </plugins>
   </build>
     <profiles>
