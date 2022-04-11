@@ -1,0 +1,91 @@
+metadata:
+  name: Maximo Visual Insights models.  Requires VAPI_HOST or VAPI_BASE_URI and VAPI_TOKEN env vars to be set. 
+  macroDefinitions:
+  - { name: windowSizeMsec , displayName: "Window size (msec)", description: "Sub-window size on which to compute raw features.",  
+      defaultValue: 40, type: float, min: 20  }
+  - { name: windowShiftPercent, displayName: "Window shift (%)", description: "Percentage of the window size to shift when computing the next sub-window.",  
+      defaultValue: 50, choices: [0, 25, 50, 75] } 
+  - { name: resamplingRate, displayName: "Re-sampling rate (htz)", description: "Sampling rate to which all data is normalize.",  defaultValue: 44100, type: integer } 
+  - { name: featureExtractor, displayName: "Feature extractor", description: "Type of features to extract from data",  defaultValue: LogMel, choices: [MFCC, FFT, LogMel] }
+  - { name: minFreq, displayName: "Minimum frequency (htz)", description: "Minimum frequency to include in computed features",  defaultValue: 20, type: integer, min: 1 }
+  - { name: maxFreq, displayName: "Maximum frequency (htz)", description: "Maximum frequency to include in computed features",  defaultValue: 20000, type: integer, min: 1 }
+  - { name: featureLen, displayName: "Feature length", description: "The length of the feature vector.",  defaultValue: 128,  type: integer, min: 1 }
+  - { name: deltaProcessor, displayName: "Difference features", description: "Include 1st and 2nd order time derivative of spectrogram.",  defaultValue: false, choices: [false, true] }
+  - { name: normalizeProcessor, displayName: "Normalize features", description: "Normalize each spectrogram",  defaultValue: false, choices: [false, true] }
+  - { name: preserveModel, displayName: "Preserve server content", description: "If true, then data set and trained model will be preserved after training.",  defaultValue: false, choices: [false, true] }
+  - { name: noiseMax, displayName: "Noise max", description: "Maximum range of noise applied",  defaultValue: 0, type: integer, min: 0 }
+  - { name: gaussianMax, displayName: "Gaussian max ", description: "Maximum range of gaussians applied.",  defaultValue: 0, type: integer, min: 0 }
+  - { name: motionMax, displayName: "Motion max ", description: "Maximum range of motion blur applied",  defaultValue: 0, type: integer, min: 0  }
+  - { name: sharpnessMax, displayName: "Sharpness max ", description: "Maximum range of sharpnesses applied",  defaultValue: 0, type: integer, min: 0}
+templateText: |-
+  // Model parameters
+  // The augmentation counts are currently ignored by MVI and always assume a value of 5 in the server.
+  // So for now, use a non-zero max to control whether an augmentation is enabled.
+  //- { name: noiseCount, displayName: "Noise #", description: "Number of noise augmentations added",  defaultValue: 0, type: integer, min: 0 }
+  //- { name: motionCount, displayName: "Motion #", description: "Number of motion augmentations added",  defaultValue: 0, type: integer, min: 0 }
+  //- { name: gaussianCount, displayName: "Gaussian #", description: "Number of gaussian augmentations added",  defaultValue: 0, type: integer, min: 0 }
+  //- { name: sharpnessCount, displayName: "Sharpness #", description: "Number of sharpness augmentations added",  defaultValue: 0, type: integer, min: 0}
+  // Workbench does not seem to support typed values.
+  // - { name: modelName, displayName: "Model name", description: "Name to assign data set and models in MVI", defaultValue: "", choices: [ null, 1] }
+  // var modelName=null
+  var preserveModel=${preserveModel}
+  var noiseCount=5 
+  var noiseMax=${noiseMax}
+  var motionCount=5 
+  var motionMax=${motionMax}
+  var gaussianCount=5 
+  var gaussianMax=${gaussianMax}
+  var sharpnessCount=5 
+  var sharpnessMax=${sharpnessMax}
+
+  // Feature parameters
+  var fe;
+  var fp = null;
+  var resamplingRate=${resamplingRate}
+  var minFreq=${minFreq}
+  var maxFreq=${maxFreq}
+  var windowSizeMsec=${windowSizeMsec}
+  var windowShiftMsec=windowSizeMsec * ${windowShiftPercent}/100.0 
+  var featureLen=${featureLen}
+  var featureExtractor='${featureExtractor}'
+  var normalizeProcessor='${normalizeProcessor}'
+  var deltaProcessor='${deltaProcessor}'
+  // Define the feature extractor
+  if (featureExtractor === 'FFT') {
+    fe = new FFTFeatureExtractor(resamplingRate, minFreq, maxFreq, false, true, featureLen)
+  } else if (featureExtractor === 'LogMel') {
+  	fe = new LogMelFeatureExtractor(resamplingRate, featureLen, minFreq, maxFreq, 0)
+  } else {	// MFCC
+    fe = new MFCCFeatureExtractor(resamplingRate, featureLen, minFreq, maxFreq, featureLen);
+  }
+  // Define the feature processor 
+  if (normalizeProcessor === 'true')  
+  	fp = new NormalizingFeatureProcessor(true,true,true,true)
+  if (deltaProcessor === 'true')  {
+    var dfp = new DeltaFeatureProcessor(2,[1,1,1]);
+  	if (fp != null) 
+  	    fp = new PipelinedFeatureProcessor(fp,dfp)
+  	else
+  	    fp = dfp
+  }
+  // Build the feature gram extractor 
+  var fge = new FeatureGramDescriptor(windowSizeMsec, windowShiftMsec, fe, fp); 
+
+  // Finally, create the classifier
+  // Expect VAPI_HOST, VAPI_TOKEN and VAPI_PORT if not using 443.
+  var builder = new MVIClassifierBuilder()
+  builder.setFeatureGramDescriptor(fge)
+        .setPreserveModel(preserveModel)
+  		// .setModelName(modelName)
+
+  // The augmentation counts are currently ignored by MVI and always assume a value of 5 in the server.
+  // So for now, use a non-zero max to control whether an augmentation is enabled.
+  if (noiseMax > 0)
+        builder.addNoise(noiseCount, noiseMax)
+  if (motionMax > 0)
+        builder.addMotionBlur(motionCount, motionMax)
+  if (gaussianMax > 0)
+        builder.addGaussianBlur(gaussianCount, gaussianMax)
+  if (sharpnessMax > 0)
+        builder.addSharpness(sharpnessCount, sharpnessMax)
+   classifier = builder.build()
