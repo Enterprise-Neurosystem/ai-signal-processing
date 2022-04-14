@@ -27,7 +27,7 @@ import org.eng.aisp.classifier.gmm.GMMClassifier;
 public class TrainAndClassify {
 
   public static void main(String[] args) throws AISPException, IOException {
-    //  The location of the Sounds project (in the iot-sounds repo)
+	//  The location of the sounds in the aisp-core-samples project 
     String metadata = "sample-sounds/chiller";
     
     // Load the sounds and require a meta-data file providing labels & sensor ids.
@@ -35,11 +35,7 @@ public class TrainAndClassify {
     Iterable<SoundRecording> srList = SoundRecording.readMetaDataSounds(metadata);
 
     // Create and train the classifier on the "status" label attached to 
-    // the loaded sounds.  MultiClassifier is a good general purpose 
-    // classifier that can do outlier detection and train on multiple labels.
-    // It uses the EnsembleClassifier, which explores the combination of
-    // of feature extractors, processors and classifier algorithms to determine
-    // the highest accuracy combinations for the given training data.
+    // the loaded sounds.  The GMMClassifier is a fairly good shallow model. 
     final String trainingLabel = "status";
     IClassifier<double[]> classifier = new GMMClassifier();
     classifier.train(trainingLabel, srList);
