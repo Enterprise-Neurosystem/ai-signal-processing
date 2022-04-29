@@ -17,6 +17,25 @@ Contact David Wood (dawood@us.ibm.com) for questions/comments/contributions.
    1. cd SOMEWHERE; unzip .../ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-0.0.1-SNAPSHOT-cuda10.2.zip   
 1. See the wiki to enable and use the CLI
 
+To build the CLI zip on Ubuntu:
+```bash
+sudo apt update
+sudo apt install openjdk-11-jre-headless
+sudo apt install maven
+git clone https://github.com/Enterprise-Neurosystem/ai-signal-processing.git
+cd ai-signal-processing
+mvn -DskipTests clean install # Add -P cuda10.2 to build the GPU version
+ls ai-signal-processing/aisp-core/aisp-core-main/target/*.zip
+```
+To enable on Ubuntu, you can install the CLI tree anywhere, but we'll put it in your home directory here.
+```bash
+cd ~
+unzip YOUR_GIT_PARENT_DIR/ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-*.zip
+export AISP_HOME=$HOME/aisp
+export PATH=$AISP_HOME/bin:$PATH
+setup-aisp # add -gpu option if you've build the GPU version above.
+```
+
 ## Dependency
 Artifacts are not currently published to any public maven repositories, but if you build locally you can use
 the following dependency in your projects.
