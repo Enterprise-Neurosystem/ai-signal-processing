@@ -33,7 +33,7 @@ cd ~
 unzip YOUR_GIT_PARENT_DIR/ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-*.zip
 export AISP_HOME=$HOME/aisp
 export PATH=$AISP_HOME/bin:$PATH
-setup-aisp # add -gpu option if you've build the GPU version above.
+setup-aisp # add -gpu option if you built the GPU version above.
 ```
 You will probably want to add the two `export` commands above to your ~/.bashrc file so you have the CLI available in all your shells.
 
