@@ -25,9 +25,9 @@ sudo apt install maven
 git clone https://github.com/Enterprise-Neurosystem/ai-signal-processing.git
 cd ai-signal-processing
 mvn -DskipTests clean install # Add -P cuda10.2 to build the GPU version
-ls ai-signal-processing/aisp-core/aisp-core-main/target/*.zip
+ls aisp-core/aisp-core-main/target/*.zip  # This is the zip file containing the CLI
 ```
-To enable on Ubuntu, you can install the CLI tree anywhere, but we'll put it in your home directory here.
+To enable on Linux, you can install the CLI tree anywhere, but we'll put it in your home directory here.
 ```bash
 cd ~
 unzip YOUR_GIT_PARENT_DIR/ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-*.zip
@@ -35,6 +35,7 @@ export AISP_HOME=$HOME/aisp
 export PATH=$AISP_HOME/bin:$PATH
 setup-aisp # add -gpu option if you've build the GPU version above.
 ```
+You will probably want to add the two `export` commands above to your ~/.bashrc file so you have the CLI available in all your shells.
 
 ## Dependency
 Artifacts are not currently published to any public maven repositories, but if you build locally you can use
