@@ -43,39 +43,21 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 
 	
 	/**
-	 * Implemented to mutate each item into 0, 1 or N copies of itself as indicated by the configuration.
+	 * Implemented to mutate each item into 0, 1 or N copies of itself as indicated by the up/down/count configuration.
 	 * @param <ITEM>
 	 */
-	protected static class LevelingMutator<ITEM extends ILabeledDataWindow<?>> implements IShuffleMutator<ITEM,ITEM> {
-		final int samplesPerLabelValue;
-//		final Map<String, List<ITEM>> itemsByLabelValue;
+	private static class LevelingMutator<ITEM extends ILabeledDataWindow<?>> implements IShuffleMutator<ITEM,ITEM> {
+
+		/**
+		 * A map of item hashcodes to the number of copies to mutate to for each item in the iterable.
+		 */
 		final Map<Integer, Integer> itemCounts; 
-		final String labelName;
+
 		public LevelingMutator(IShuffleIterable<ITEM> iterable, String labelName, int samplesPerLabelValue, boolean upSample) {
-			this.labelName = labelName;
-			TrainingSetInfo tsi = TrainingSetInfo.getInfo(iterable);
-			LabelInfo linfo = tsi.getLabelInfo(labelName);
-			if (samplesPerLabelValue <= 0) {
-				int min = Integer.MAX_VALUE, max = 0;
-				for (String labelValue : linfo.getLabelValues()) {
-					LabelValueInfo lvi = linfo.getLabelInfo(labelValue);
-					int samples = lvi.getTotalSamples();
-					if (samples > max)
-						max = samples;
-					if (samples < min)
-						min = samples;
-				}
-				if (upSample) 
-					samplesPerLabelValue = max;
-				else
-					samplesPerLabelValue = min;
-			}
-			this.samplesPerLabelValue = samplesPerLabelValue;
-			this.itemCounts = this.computeItemCounts(iterable, labelName, linfo.getLabelValues(), samplesPerLabelValue);
+			this.itemCounts = this.computeItemCounts(iterable, labelName, samplesPerLabelValue, upSample); 
 		}
 
-		private Map<Integer, Integer> computeItemCounts(IShuffleIterable<ITEM> iterable, String labelName, Set<String> labelValues, int samplesPerLabelValue) {
-			Map<Integer,Integer> items = new HashMap<>();
+		private Map<Integer, Integer> computeItemCounts(IShuffleIterable<ITEM> iterable, String labelName, int samplesPerLabelValue, boolean upSample) {
 			List<String> itemLabelValues = new ArrayList<>();
 			List<Integer> itemHashcodes = new ArrayList<>();
 			Map<String,Integer> labelCounts = new HashMap<>();
@@ -97,20 +79,39 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 					labelCounts.put(labelValue, count);
 				}
 			}
+			
+			// Compute the requested samplesPerLabelValue
+			if (samplesPerLabelValue <= 0) {
+				int min = Integer.MAX_VALUE, max = 0;
+				for (Integer count : labelCounts.values()) {
+					if (count > max)
+						max = count;
+					if (count < min)
+						min = count;
+				}
+				if (upSample)
+					samplesPerLabelValue = max;
+				else
+					samplesPerLabelValue = min;
+			}
+				
 			// Create an array of counts for each item initialized to 0.
 			int itemCount = itemHashcodes.size();
 			List<Integer> itemCounts = new ArrayList<>();
 			for (int i=0 ; i<itemCount ; i++) 
 				itemCounts.add(Integer.valueOf(0));
 
-			// Add in duplicate where necessary.
+			// For each item, compute how many duplicates we should provide.
+			// Done by, for each label value, iterating through the items perhaps more than once to
+			// get the total number of instances of each item to produce the requested number of label. 
 			for (String labelValue : labelCounts.keySet()) {
-				boolean done = false;
 				int allocated = 0;
 				int index = 0;
+				// Loop until we've accumulated enough items having this label value.
 				while (allocated < samplesPerLabelValue) {
 					String thisItemLabel = itemLabelValues.get(index);
 					if (thisItemLabel.equals(labelValue)) {
+						// This is an item with the label, so add an instance of it to the items for this label.
 						int count = itemCounts.get(index) + 1;
 						itemCounts.set(index, Integer.valueOf(count));
 						allocated++;
@@ -121,6 +122,7 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 				}
 			}
 			
+			// Finally, produce the map of item hashcodes to item counts.
 			Map<Integer, Integer> mappedItemCounts = new HashMap<>();
 			for (int i=0 ; i<itemCount ; i++) {
 				Integer hashcode = itemHashcodes.get(i);
@@ -132,6 +134,9 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 			
 		}
 		
+		/**
+		 * Use the item's hash code to look up the number of instances/copies of this item to return.
+		 */
 		@Override
 		public List<ITEM> mutate(ITEM item) {
 			int hash = item.hashCode();
@@ -140,8 +145,11 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 			if (count != null)
 				dups = count.intValue();
 			if (dups == 0)
-				return null;
+				return null;	// No copies of this item to be used.
 			List<ITEM> items = new ArrayList<>();
+
+			// Create the copies of this item to return.
+			// For now, no need to create separate instances. 
 			for (int i=0 ; i<dups ; i++)
 				items.add(item);
 			return items; 
@@ -177,7 +185,7 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 	}
 
 	private BalancedLabeledWindowShuffleIterable(IShuffleIterable<ITEM> iterable, String labelName, int samplesPerLabelValue, boolean upSample) {
-		super(iterable, new LevelingMutator(iterable,labelName, samplesPerLabelValue, upSample));
+		super(iterable, new LevelingMutator<ITEM>(iterable,labelName, samplesPerLabelValue, upSample));
 
 	}
 
