@@ -15,13 +15,21 @@
  *******************************************************************************/
 package org.eng.aisp.util;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.eng.aisp.AISPLogger;
 import org.eng.aisp.ILabeledDataWindow;
+import org.eng.aisp.classifier.TrainingSetInfo;
+import org.eng.aisp.classifier.TrainingSetInfo.LabelInfo;
+import org.eng.aisp.classifier.TrainingSetInfo.LabelValueInfo;
 import org.eng.util.IShuffleIterable;
+import org.eng.util.IShuffleMutator;
 import org.eng.util.ISizedShuffleIterable;
-import org.eng.util.ShufflizingIterable;
+import org.eng.util.MutatingShuffleIterable;
 
 /**
  * A shufflable iterable that allows setting the number of samples for all label values associated with a given label. 
@@ -30,15 +38,121 @@ import org.eng.util.ShufflizingIterable;
  *
  * @param <ITEM>
  */
-public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindow<?>> implements ISizedShuffleIterable<ITEM> {
+public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindow<?>> extends MutatingShuffleIterable<ITEM, ITEM> implements ISizedShuffleIterable<ITEM> {
 	
 
-	IShuffleIterable<ITEM> iterable;
-	private String labelName;
-	private boolean upSample;
-	private BalancedLabeledWindowIterable<ITEM> balancedIterable;
-	private ShufflizingIterable<ITEM> shufflizedIterable = null;
-	private int samplesPerLabelValue;
+	
+	/**
+	 * Implemented to mutate each item into 0, 1 or N copies of itself as indicated by the configuration.
+	 * @param <ITEM>
+	 */
+	protected static class LevelingMutator<ITEM extends ILabeledDataWindow<?>> implements IShuffleMutator<ITEM,ITEM> {
+		final int samplesPerLabelValue;
+//		final Map<String, List<ITEM>> itemsByLabelValue;
+		final Map<Integer, Integer> itemCounts; 
+		final String labelName;
+		public LevelingMutator(IShuffleIterable<ITEM> iterable, String labelName, int samplesPerLabelValue, boolean upSample) {
+			this.labelName = labelName;
+			TrainingSetInfo tsi = TrainingSetInfo.getInfo(iterable);
+			LabelInfo linfo = tsi.getLabelInfo(labelName);
+			if (samplesPerLabelValue <= 0) {
+				int min = Integer.MAX_VALUE, max = 0;
+				for (String labelValue : linfo.getLabelValues()) {
+					LabelValueInfo lvi = linfo.getLabelInfo(labelValue);
+					int samples = lvi.getTotalSamples();
+					if (samples > max)
+						max = samples;
+					if (samples < min)
+						min = samples;
+				}
+				if (upSample) 
+					samplesPerLabelValue = max;
+				else
+					samplesPerLabelValue = min;
+			}
+			this.samplesPerLabelValue = samplesPerLabelValue;
+			this.itemCounts = this.computeItemCounts(iterable, labelName, linfo.getLabelValues(), samplesPerLabelValue);
+		}
+
+		private Map<Integer, Integer> computeItemCounts(IShuffleIterable<ITEM> iterable, String labelName, Set<String> labelValues, int samplesPerLabelValue) {
+			Map<Integer,Integer> items = new HashMap<>();
+			List<String> itemLabelValues = new ArrayList<>();
+			List<Integer> itemHashcodes = new ArrayList<>();
+			Map<String,Integer> labelCounts = new HashMap<>();
+			
+//			AISPLogger.logger.info("Enter: " + TrainingSetInfo.getInfo(iterable).prettyFormat());
+			for (ITEM item : iterable) {
+				String labelValue = item.getLabels().getProperty(labelName);
+				int hashCode = item.hashCode();
+				itemLabelValues.add(labelValue);
+				itemHashcodes.add(hashCode);
+				if (labelValue != null) {
+					Integer count = labelCounts.get(labelValue);
+					int icount;
+					if (count == null)
+						icount = 0; 
+					else 
+						icount = count.intValue();
+					count = Integer.valueOf(icount+1); 
+					labelCounts.put(labelValue, count);
+				}
+			}
+			// Create an array of counts for each item initialized to 0.
+			int itemCount = itemHashcodes.size();
+			List<Integer> itemCounts = new ArrayList<>();
+			for (int i=0 ; i<itemCount ; i++) 
+				itemCounts.add(Integer.valueOf(0));
+
+			// Add in duplicate where necessary.
+			for (String labelValue : labelCounts.keySet()) {
+				boolean done = false;
+				int allocated = 0;
+				int index = 0;
+				while (allocated < samplesPerLabelValue) {
+					String thisItemLabel = itemLabelValues.get(index);
+					if (thisItemLabel.equals(labelValue)) {
+						int count = itemCounts.get(index) + 1;
+						itemCounts.set(index, Integer.valueOf(count));
+						allocated++;
+					}
+					index++;
+					if (index == itemCount)
+						index = 0;
+				}
+			}
+			
+			Map<Integer, Integer> mappedItemCounts = new HashMap<>();
+			for (int i=0 ; i<itemCount ; i++) {
+				Integer hashcode = itemHashcodes.get(i);
+				Integer count = itemCounts.get(i);
+//				AISPLogger.logger.info("item[" + i + "] count=" + count);
+				mappedItemCounts.put(hashcode,count);
+			}
+			return mappedItemCounts;
+			
+		}
+		
+		@Override
+		public List<ITEM> mutate(ITEM item) {
+			int hash = item.hashCode();
+			Integer count = this.itemCounts.get(hash);
+			int dups = 0;
+			if (count != null)
+				dups = count.intValue();
+			if (dups == 0)
+				return null;
+			List<ITEM> items = new ArrayList<>();
+			for (int i=0 ; i<dups ; i++)
+				items.add(item);
+			return items; 
+		}
+
+		@Override
+		public boolean isUnaryMutator() {
+			return false;
+		}
+		
+	}
 
 	/**
 	 * 
@@ -63,83 +177,10 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 	}
 
 	private BalancedLabeledWindowShuffleIterable(IShuffleIterable<ITEM> iterable, String labelName, int samplesPerLabelValue, boolean upSample) {
-		this.iterable = iterable;
-		this.labelName = labelName;
-		this.samplesPerLabelValue = samplesPerLabelValue;
-		this.upSample = upSample;
-		if (samplesPerLabelValue > 0)
-			balancedIterable = new BalancedLabeledWindowIterable<ITEM>(iterable,labelName, samplesPerLabelValue);
-		else
-			balancedIterable = new BalancedLabeledWindowIterable<ITEM>(iterable,labelName, upSample);
-		// TODO: why do we do this?
-//		if (samplesPerLabelValue == 0 && !upSample) {	// min label counts
-//			shufflizedIterable = new ShufflizingIterable<ITEM>(balancedIterable);
-//			this.balancedIterable = null;
-//		}
+		super(iterable, new LevelingMutator(iterable,labelName, samplesPerLabelValue, upSample));
+
 	}
 
-	@Override
-	public ISizedShuffleIterable<ITEM> newIterable(Iterable<String> references) {
-		// Not sure this is really ever called since we implement our own shuffle.
-		IShuffleIterable<ITEM> shuffled = ((IShuffleIterable<ITEM>)this.iterable).newIterable(references);
-		return new BalancedLabeledWindowShuffleIterable<ITEM>(shuffled, labelName, this.samplesPerLabelValue, upSample);
-	}
 
-	@Override
-	public Iterator<ITEM> iterator() {
-		if (balancedIterable != null)
-			return balancedIterable.iterator();
-		else
-			return shufflizedIterable.iterator();
-	}
-
-	@Override
-	public int size() {
-		if (balancedIterable != null)
-			return balancedIterable.size();
-		else
-			return shufflizedIterable.size();
-	}
-
-	
-	@Override
-	public ISizedShuffleIterable<ITEM> shuffle() {
-		return this.shuffle(123232);
-	}
-
-	@Override
-	public ISizedShuffleIterable<ITEM> shuffle(long seed) {
-		IShuffleIterable<ITEM> shuffled;
-		if (balancedIterable != null)
-			shuffled = iterable.shuffle(seed);
-		else
-			shuffled = shufflizedIterable.shuffle(seed);
-		return new BalancedLabeledWindowShuffleIterable<ITEM>(shuffled, labelName, this.samplesPerLabelValue, upSample);
-	}
-
-	@Override
-	public Iterable<String> getReferences() {
-		if (balancedIterable != null)
-			return iterable.getReferences(); 
-		else
-			return shufflizedIterable.getReferences(); 
-	}
-
-	@Override
-	public ITEM dereference(String reference) {
-		if (balancedIterable != null)
-			return iterable.dereference(reference); 
-		else
-			return shufflizedIterable.dereference(reference); 
-	}
-
-	@Override
-	public List<ITEM> dereference(List<String> references) {
-		if (balancedIterable != null)
-			return iterable.dereference(references); 
-		else
-			return shufflizedIterable.dereference(references); 
-	}
-	
 
 }

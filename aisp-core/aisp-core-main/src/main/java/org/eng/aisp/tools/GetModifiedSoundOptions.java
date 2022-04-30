@@ -78,7 +78,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	private boolean requireLabel;
 
 	private boolean enableBalancing;
-
+	private IShuffleIterable<SoundRecording> clippedUnbalancedSounds;
 	private int clipLenMsec = DEFAULT_CLIPLEN;
 
 	/**
@@ -167,11 +167,18 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 
 
 		
-		this.sounds = GetModifiedSoundOptions.getRequestedSounds(this.sounds,this.label, repeatableShuffle, clipLenMsec, padType, balancedLabels,balancedCount, useUpSampling);
+		this.sounds = this.getRequestedSounds(this.sounds,this.label, repeatableShuffle, clipLenMsec, padType, balancedLabels,balancedCount, useUpSampling);
 
 		return sounds != null;
 	}
 
+	/**
+	 * Get the clipped sounds prior to being balanced. 
+	 * @return
+	 */
+	public IShuffleIterable<SoundRecording> getClippedSounds() {
+		return this.clippedUnbalancedSounds;
+	}
 
 	/**
 	 * @param sounds
@@ -184,7 +191,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	 * @param useUpSampling
 	 * @return
 	 */
-	private static IShuffleIterable<SoundRecording> getRequestedSounds(IShuffleIterable<SoundRecording> sounds,
+	private IShuffleIterable<SoundRecording> getRequestedSounds(IShuffleIterable<SoundRecording> sounds,
 			String trainingLabel, boolean repeatableShuffle, double clipLenMsec, PadType padType,
 			boolean balancedLabels, int balancedCount, boolean useUpSampling) {
 		if (clipLenMsec > 0) { 
@@ -200,6 +207,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 //				System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 //			}
 		}
+		this.clippedUnbalancedSounds = sounds;
 		if (balancedLabels) {
 //			TrainingSetInfo tsi = TrainingSetInfo.getInfo(sounds);
 //			int minLabels = findMinLabelCount(tsi, trainingLabel); 
