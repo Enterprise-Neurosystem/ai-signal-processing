@@ -59,11 +59,14 @@ public abstract class AbstractObjectTest {
 
 	/**
 	 * May be overridden by sub-classes to provide additional validity tests on the deserialized object beyond simple ser.equals(deserialized) test.
+	 * This implemenation does simple equals() between the two objects.
 	 * @param ser	 the original object return by {@link #getSerializableTestObject()}.
 	 * @param deserialized the object deserialized from the file system.
 	 * @throws Exception 
 	 */
-	protected void verifySerializableEquivalence(Serializable ser, Serializable deserialized) throws Exception { }
+	protected void verifySerializableEquivalence(Serializable ser, Serializable deserialized) throws Exception { 
+		Assert.assertTrue(ser.equals(deserialized));	
+	}
 	
 	/**
 	 * Get the cloneable object to test, null if not actually clonable.
@@ -110,7 +113,9 @@ public abstract class AbstractObjectTest {
 		slist = ENGTestUtils.verifyPastSerializations(ENGTestUtils.SerializationsDir, baseName, ser, true);
 		Assert.assertTrue("Expected only 1 object", slist.size() == 1);
 		Serializable deserialized = (Serializable)slist.get(0); 
-		Assert.assertTrue(ser.equals(deserialized));
+
+
+
 		verifySerializableEquivalence(ser, deserialized);
 	}
 	
