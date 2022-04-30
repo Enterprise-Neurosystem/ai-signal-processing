@@ -108,10 +108,14 @@ public abstract class AbstractShuffleIterableTest {
 	 */
 	protected void shuffleTestHelper(IShuffleIterable<?> si1, int expectedItemCount) {
 //		validateShuffleEquivalence(si1, si1,true);		
-
 		// Make sure test data is correct.
 		Assert.assertTrue(SoundTestUtils.iterable2List(si1).size() == expectedItemCount);
 
+		// Make sure the # of references matches the number of items.
+		List<String> references = SoundTestUtils.iterable2List(si1.getReferences());
+		int refCount = references.size();
+		Assert.assertTrue("Reference count is " + refCount + " but expected " + expectedItemCount, refCount == expectedItemCount);
+		
 		IShuffleIterable<?> si2 = si1.shuffle(2); 
 		// Test equality on 1st shuffle 
 		validateShuffleEquivalence(si1, si2,false, expectedItemCount);		// First shuffle

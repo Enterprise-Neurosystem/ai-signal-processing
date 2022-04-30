@@ -27,6 +27,7 @@ import org.eng.aisp.classifier.TrainingSetInfo.LabelInfo;
 import org.eng.aisp.classifier.TrainingSetInfo.LabelValueInfo;
 import org.eng.util.IShuffleIterable;
 import org.eng.util.ISizedIterable;
+import org.eng.util.ISizedShuffleIterable;
 import org.eng.util.ShufflizingIterable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,6 +39,7 @@ public class BalancedLabeledWindowShuffleIterableTest extends AbstractLabeledWin
 		Assert.assertTrue("Count must a multple of 2 for test to work", count % 2 == 0);
 		List<SoundRecording> srList = SoundTestUtils.createNormalAbnormalTrainingRecordings(trainingLabel, "normal", count/2, "abnormal", count/2);
 		iter = new ShufflizingIterable<SoundRecording>(srList);
+//		return new BalancedLabeledWindowShuffleIterable<SoundRecording>(iter, trainingLabel, true);
 		return new BalancedLabeledWindowShuffleIterable<SoundRecording>(iter, trainingLabel, true);
 	}
 	
@@ -75,19 +77,30 @@ public class BalancedLabeledWindowShuffleIterableTest extends AbstractLabeledWin
 		BalancedLabeledWindowShuffleIterable<SoundRecording> biter = new BalancedLabeledWindowShuffleIterable<SoundRecording>(si, trainingLabel, 2);
 		validateLabelValueCountsVarious(biter, trainingLabel, new String[] { "1", "2", "3", "4" }, new int[] { 2,2,2,2});
 	}
-
+	@Test
+	public void testCountedSampling2() {
+		String trainingLabel = "countedSampleTest";
+		
+		List<SoundRecording> srList = SoundTestUtils.createNormalAbnormalTrainingRecordings(trainingLabel, "1", 1, "2", 2);
+		srList.addAll(SoundTestUtils.createNormalAbnormalTrainingRecordings(trainingLabel, "3", 3, "4", 4));
+		IShuffleIterable<SoundRecording> si = new ShufflizingIterable<SoundRecording>(srList);
+		BalancedLabeledWindowShuffleIterable<SoundRecording> biter = new BalancedLabeledWindowShuffleIterable<SoundRecording>(si, trainingLabel, 20);
+		validateLabelValueCountsVarious(biter, trainingLabel, new String[] { "1", "2", "3", "4" }, new int[] { 20,20,20,20});
+	}
 	private void validateLabelValueCountsVarious(BalancedLabeledWindowShuffleIterable<SoundRecording> iter, String trainingLabel, String[] labelValues, int[] labelValueCounts) {
 		List<SoundRecording> items = validateLabelValueCounts(iter,trainingLabel, labelValues, labelValueCounts,null);
 		validateLabelValueCounts(iter,trainingLabel, labelValues, labelValueCounts, items);	// 2nd iteration to check repeatability.
-		ISizedIterable<SoundRecording> si = iter.shuffle();								
+		ISizedShuffleIterable<SoundRecording> si = iter.shuffle();								
 		items = validateLabelValueCounts(si,trainingLabel, labelValues, labelValueCounts,null);		// shuffled
 		validateLabelValueCounts(si,trainingLabel, labelValues, labelValueCounts, items);		// 2nd iteration on shuffled to check repeatability.
 	}
 
-	private List<SoundRecording> validateLabelValueCounts(ISizedIterable<SoundRecording> iter, String trainingLabel, String[] labelValues, int[] labelValueCounts, 
+	private List<SoundRecording> validateLabelValueCounts(ISizedShuffleIterable<SoundRecording> iter, String trainingLabel, String[] labelValues, int[] labelValueCounts, 
 			List<SoundRecording> expectedItems) {
 		Assert.assertTrue("Test is broken. these need to be the same length", labelValues.length == labelValueCounts.length);
+		List<String> refList = SoundTestUtils.iterable2List(iter.getReferences());
 		List<SoundRecording> srList = SoundTestUtils.iterable2List(iter);	// Only iterate the iterable once.
+		Assert.assertTrue("Number of references does not match number of items", refList.size() == srList.size());
 		TrainingSetInfo tsi = TrainingSetInfo.getInfo(srList);
 		LabelInfo li = tsi.getLabelInfo(trainingLabel);
 //		AISPLogger.logger.info(tsi.prettyFormat());

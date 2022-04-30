@@ -32,7 +32,7 @@ public interface IMutator<INPUT, OUTPUT> {
 	 * then be included in the {@link MutatingIterable}.  The mapped items 
 	 * can include the original if desired.
 	 * @param item never null.
-	 * @return null, or list of length 1 or more of items.
+	 * @return null, or list of length 1 or more of items. For a given item, this must return the same result for each call with the item.
 	 */
 	List<OUTPUT>  mutate(INPUT item);
 }
