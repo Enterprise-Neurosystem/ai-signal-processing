@@ -52,7 +52,7 @@ install_packages() {
  	done
 	if [ ! -z "$needs_install" ]; then	
 	    sudo add-apt-repository -y ppa:deadsnakes/ppa  # for python3.9
-	    sudo apt update && sudo apt-get -y install --no-install-recommends $needs_install
+	    sudo apt-get update && sudo apt-get -y install --no-install-recommends $needs_install
   	fi
 	;;
     debian) 
@@ -72,7 +72,7 @@ install_packages() {
  	echo "$needs_install"
 	if [ ! -z "$needs_install" ]; then	
 	    sudo add-apt-repository -y ppa:deadsnakes/ppa  # for python3.9
-	    sudo apt update && sudo apt-get -y install --no-install-recommends $needs_install
+	    sudo apt-get update && sudo apt-get -y install --no-install-recommends $needs_install
   	fi
 	;;
     *) echo Unknown O/S $os; return 1 ;;
