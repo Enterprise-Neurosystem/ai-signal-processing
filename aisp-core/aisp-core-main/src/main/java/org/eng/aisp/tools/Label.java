@@ -47,7 +47,7 @@ public class Label {
 			  "Classifies sounds using a model to produce a metadata-formatted labeling of the\n"
 			+ "sounds on stdou.  While the -clipLen option is not strictly required, it is \n"
 			+ "typically used to classify sub-segments of the input sound(s).  Segments from\n"
-			+ "the same file that are are adjacent in time and have the same label name as \n" 
+			+ "the same file that are adjacent in time and have the same label name as \n" 
 			+ "produced by the model will be merged.\n"
 			+ "Classify mode options\n"
 			+ GetModifiedSoundOptions.ClipOnlyOptionsHelp
