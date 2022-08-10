@@ -69,54 +69,7 @@
   </build>
     <profiles>
 
-        <profile>
-            <id>cuda10.0</id>
-            <activation>
-                <property>
-                    <name>gpuCuda</name>
-                    <value>10.0</value>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.deeplearning4j</groupId>
-                    <artifactId>deeplearning4j-cuda-10.0</artifactId>
-                    <version>1.0.0-beta7</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.nd4j</groupId>
-                    <artifactId>nd4j-cuda-10.0-platform</artifactId>
-                    <version>1.0.0-beta7</version>
-                </dependency>
-		<dependency>
-		    <groupId>org.bytedeco.javacpp-presets</groupId>
-		    <artifactId>cuda</artifactId>
-		    <version>10.0-7.3-1.4.3</version>
-		    <classifier>linux-x86_64-redist</classifier>
-		</dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>cuda10.1</id>
-            <activation>
-                <property>
-                    <name>gpuCuda</name>
-                    <value>10.1</value>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.deeplearning4j</groupId>
-                    <artifactId>deeplearning4j-cuda-10.1</artifactId>
-                    <version>1.0.0-beta7</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.nd4j</groupId>
-                    <artifactId>nd4j-cuda-10.1-platform</artifactId>
-                    <version>1.0.0-beta7</version>
-                </dependency>
-            </dependencies>
-        </profile>
+
         <profile>
             <id>cuda10.2</id>
             <activation>
@@ -129,12 +82,33 @@
                 <dependency>
                     <groupId>org.deeplearning4j</groupId>
                     <artifactId>deeplearning4j-cuda-10.2</artifactId>
-                    <version>1.0.0-beta7</version>
+                    <version>1.0.0-M1.1</version>
                 </dependency>
                 <dependency>
                     <groupId>org.nd4j</groupId>
                     <artifactId>nd4j-cuda-10.2-platform</artifactId>
-                    <version>1.0.0-beta7</version>
+                    <version>1.0.0-M1.1</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+        	<id>cuda11.0</id>
+            <activation>
+                <property>
+                    <name>gpuCuda</name>
+                    <value>11.0</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.deeplearning4j</groupId>
+                    <artifactId>deeplearning4j-cuda-11.0</artifactId>
+                    <version>1.0.0-M1.1</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.nd4j</groupId>
+                    <artifactId>nd4j-cuda-11.0-platform</artifactId>
+                    <version>1.0.0-M1.1</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -151,12 +125,12 @@
                 <dependency>
                     <groupId>org.deeplearning4j</groupId>
                     <artifactId>deeplearning4j-nn</artifactId>
-                    <version>1.0.0-beta7</version>
+                    <version>1.0.0-M1.1</version>
                 </dependency>
                 <dependency>
                     <groupId>org.nd4j</groupId>
                     <artifactId>nd4j-native-platform</artifactId>
-                    <version>1.0.0-beta7</version>
+                    <version>1.0.0-M1.1</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -199,7 +173,7 @@
 			<dependency>
 	  <groupId>org.nd4j</groupId>
 	  <artifactId>nd4j-native</artifactId>
-          <version>1.0.0-beta7</version>
+          <version>1.0.0-M1.1</version>
 	  <classifier>linux-arm64</classifier>
 	</dependency>
 
