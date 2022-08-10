@@ -118,7 +118,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 		this.clipLenMsec = cmdargs.getOption("clipLen", DEFAULT_CLIPLEN); 
 
 		PadType padType; 
-		boolean repeatableShuffle = !cmdargs.getFlag("no-repeatabilitye"); 
+		boolean repeatableShuffle = !cmdargs.getFlag("no-repeatability"); 
 		
 		// Padding option
 		String padOption = cmdargs.getOption("pad", "no");

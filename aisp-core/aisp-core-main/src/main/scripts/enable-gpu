@@ -34,7 +34,7 @@ if [[ "$(basename -- "$0")" == "enable-gpu" ]]; then
 fi
 for cudadir in $cudalibdirs; do
   if [ -e $cudadir ]; then
-    echo Enabling CUDA/GPU using $cudadir
+    echo Enabling CUDA/GPU using $cudadir >&2	#Put on stderr so tools can use stdout
     export  JAVA_OPTIONS="-Djava.library.path=$cudadir $JAVA_OPTIONS"
     export LD_LIBRARY_PATH="$cudadir:$LD_LIBRARY_PATH"
     return

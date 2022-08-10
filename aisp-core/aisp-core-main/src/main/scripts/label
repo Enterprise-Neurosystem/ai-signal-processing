@@ -15,9 +15,9 @@
 # * limitations under the License.
 # *******************************************************************************
 cmd=$0
-CAACLASS=org.eng.aisp.tools.ListModels
+CAACLASS=org.eng.aisp.tools.Label
 if [ -z "$AISP_HOME" ]; then
-   echo Setting AISP_HOME and PATH automatically >&2 # So stdout can be redirected into a .js file
+   echo Setting AISP_HOME and PATH automatically >&2 # To stderr so stdout can be used for redirection .csv file 
    export AISP_HOME=$(cd -P -- "$(dirname -- "$0")" && cd -P .. && pwd -P)
    export PATH=$AISP_HOME/bin:$PATH
 fi
