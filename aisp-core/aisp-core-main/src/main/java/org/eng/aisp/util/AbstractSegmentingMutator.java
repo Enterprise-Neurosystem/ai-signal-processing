@@ -89,8 +89,8 @@ public abstract class AbstractSegmentingMutator<LDW extends ILabeledDataWindow<d
 			subList.add(sub);
 			startMsec += this.windowShiftMsec;
 			nextEndMsec += this.windowShiftMsec;
-			AISPLogger.logger.info("sub start=" + sub.getStartTimeMsec() + " end="+sub.getEndTimeMsec() 
-			+ ",star/end=" + startMsec + "/" + nextEndMsec); 
+//			AISPLogger.logger.info("sub start=" + sub.getStartTimeMsec() + " end="+sub.getEndTimeMsec() 
+//			+ ",star/end=" + startMsec + "/" + nextEndMsec); 
 		}
 		
 		if (keepTrailingWindow && startMsec < durationMsec) {
