@@ -48,7 +48,9 @@ public class FixedDurationSoundRecordingIterableTest extends AbstractFixedDurati
 		List<SoundRecording> recordings = SoundTestUtils.createTrainingRecordings(count, startMsec, sourceDurationMsec, pauseMsec, htz,p);
 		FixedDurationSoundRecordingIterable iterable = new FixedDurationSoundRecordingIterable(recordings, clipLen, clipShift, padType);
 		List<SoundRecording> subWindows = SoundTestUtils.iterable2List(iterable);
-		Assert.assertTrue(subWindows.size() == 20);
+		Assert.assertTrue(subWindows.size() == 20-1);	// The last 1/2 second of the last segment does not start any sub-windows.
+		for (SoundRecording sr : subWindows) 
+			Assert.assertTrue(sr.getDataWindow().getDurationMsec() == clipLen);			
 	}
 
 }

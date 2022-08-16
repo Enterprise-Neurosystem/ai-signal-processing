@@ -18,6 +18,7 @@ package org.eng.aisp.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eng.aisp.AISPLogger;
 import org.eng.aisp.IDataWindow;
 import org.eng.aisp.IDataWindow.PadType;
 import org.eng.aisp.ILabeledDataWindow;
@@ -78,7 +79,7 @@ public abstract class AbstractSegmentingMutator<LDW extends ILabeledDataWindow<d
 	private List<IDataWindow<double[]>> getSlidingSubWindows(IDataWindow<double[]> window) {
 		List<IDataWindow<double[]>> subList = new ArrayList<>();
 		double startMsec = 0;
-		double nextEndMsec = this.windowShiftMsec; 
+		double nextEndMsec = this.windowSizeMsec; 
 		double durationMsec = window.getDurationMsec();
 		boolean keepTrailingWindow = padType != PadType.NoPad;
 		while (nextEndMsec <= durationMsec)  {
@@ -88,6 +89,8 @@ public abstract class AbstractSegmentingMutator<LDW extends ILabeledDataWindow<d
 			subList.add(sub);
 			startMsec += this.windowShiftMsec;
 			nextEndMsec += this.windowShiftMsec;
+			AISPLogger.logger.info("sub start=" + sub.getStartTimeMsec() + " end="+sub.getEndTimeMsec() 
+			+ ",star/end=" + startMsec + "/" + nextEndMsec); 
 		}
 		
 		if (keepTrailingWindow && startMsec < durationMsec) {

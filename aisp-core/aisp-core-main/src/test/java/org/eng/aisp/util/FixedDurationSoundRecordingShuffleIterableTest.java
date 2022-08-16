@@ -127,6 +127,8 @@ public class FixedDurationSoundRecordingShuffleIterableTest extends FixedDuratio
 		IShuffleIterable<SoundRecording> shuffledRecordings = new ShufflizingIterable(recordings);
 		FixedDurationSoundRecordingShuffleIterable iterable = new FixedDurationSoundRecordingShuffleIterable(shuffledRecordings, clipLen, clipShift, padType);
 		List<SoundRecording> subWindows = SoundTestUtils.iterable2List(iterable.shuffle());
-		Assert.assertTrue(subWindows.size() == 20);
+		Assert.assertTrue(subWindows.size() == 20-1);	// The last 1/2 second of the last segment does not start any sub-windows.
+		for (SoundRecording sr : subWindows) 
+			Assert.assertTrue(sr.getDataWindow().getDurationMsec() == clipLen);			
 	}
 }
