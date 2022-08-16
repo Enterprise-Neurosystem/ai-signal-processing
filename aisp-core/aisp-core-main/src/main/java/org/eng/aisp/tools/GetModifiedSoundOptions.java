@@ -31,10 +31,20 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	
 	public final static int DEFAULT_CLIPLEN = 0;
 
+	public final static int DEFAULT_CLIPSHIFT = 0;
+
 	private final static String ClipOptionsHelp = 
+             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 			  "  -clipLen double : splits sound recordings up into clips of the given\n"
 			+ "      number of milliseconds. Set to 0 to turn off.\n"
-			+ "      Defaults to " + DEFAULT_CLIPLEN + "\n" 
+			+ "      Defaults to " + DEFAULT_CLIPLEN + ".\n" 
+			+ "  -clipShift double : defines the time difference between the start times of\n" 
+			+ "      the sub-windows in milliseconds. Not used unless -clipLen option is set.\n"
+			+ "      Set to 0 or the clipLen value to define rolling windows. Set to half the\n"
+			+ "      clipLen to define sub-windows in which the last half of a window overlaps\n"
+			+ "      with the first half of the window following it. In general, this value \n"
+			+ "      should be less than the clipLen value.\n" 
+			+ "      Defaults to " + DEFAULT_CLIPSHIFT + ".\n" 
 			+ "  -pad (no|zero|duplicate): when clips are shorter than the requests clip\n"
 			+ "      padding can be added to make all clips the same length. Some models may\n"
 			+ "      require this.  Zero padding sets the added samples to zero.  Duplicate\n"
@@ -80,6 +90,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	private boolean enableBalancing;
 	private IShuffleIterable<SoundRecording> clippedUnbalancedSounds;
 	private int clipLenMsec = DEFAULT_CLIPLEN;
+	private int clipShiftMsec = DEFAULT_CLIPLEN;
 
 	/**
 	 * A convenience on {@link #GetModifiedSoundOptions(boolean, boolean)} that enables balancing of sounds.
@@ -115,7 +126,13 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 			return false;
 		}
 
+		if (cmdargs.hasArgument("clipShift") && !cmdargs.hasArgument("clipLen")) {
+			System.err.println("clipShift argument is only valid with the clipLen argument.");
+			return false;
+		}
+
 		this.clipLenMsec = cmdargs.getOption("clipLen", DEFAULT_CLIPLEN); 
+		this.clipShiftMsec = cmdargs.getOption("clipShift", DEFAULT_CLIPSHIFT); 
 
 		PadType padType; 
 		boolean repeatableShuffle = !cmdargs.getFlag("no-repeatability"); 
@@ -167,7 +184,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 
 
 		
-		this.sounds = this.getRequestedSounds(this.sounds,this.label, repeatableShuffle, clipLenMsec, padType, balancedLabels,balancedCount, useUpSampling);
+		this.sounds = this.getRequestedSounds(this.sounds,this.label, repeatableShuffle, clipLenMsec, this.clipShiftMsec, padType, balancedLabels,balancedCount, useUpSampling);
 
 		return sounds != null;
 	}
@@ -185,6 +202,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	 * @param trainingLabel
 	 * @param repeatableShuffle
 	 * @param clipLenMsec
+	 * @param clipShiftMsec2 
 	 * @param padType
 	 * @param balancedLabels
 	 * @param balancedCount 
@@ -192,11 +210,11 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	 * @return
 	 */
 	private IShuffleIterable<SoundRecording> getRequestedSounds(IShuffleIterable<SoundRecording> sounds,
-			String trainingLabel, boolean repeatableShuffle, double clipLenMsec, PadType padType,
+			String trainingLabel, boolean repeatableShuffle, double clipLenMsec, int clipShiftMsec, PadType padType,
 			boolean balancedLabels, int balancedCount, boolean useUpSampling) {
 		if (clipLenMsec > 0) { 
 			System.out.println("Sounds will be clipped into " + clipLenMsec + " millisecond clips (padding=" + padType.name() + ").");
-			sounds = new FixedDurationSoundRecordingShuffleIterable(sounds, clipLenMsec, padType);
+			sounds = new FixedDurationSoundRecordingShuffleIterable(sounds, clipLenMsec, clipShiftMsec, padType);
 //			System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 //			if (repeatableShuffle && balancedLabels) {
 //				System.err.println("NOTE: repeatable shufflability (the default) while balancing labels and clipping\n"

@@ -15,8 +15,14 @@
  *******************************************************************************/
 package org.eng.aisp.util;
 
+import java.util.List;
+import java.util.Properties;
+
 import org.eng.aisp.IDataWindow.PadType;
 import org.eng.aisp.SoundRecording;
+import org.eng.aisp.SoundTestUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 public class FixedDurationSoundRecordingIterableTest extends AbstractFixedDurationLabeledWindowIterableTest {
@@ -25,6 +31,24 @@ public class FixedDurationSoundRecordingIterableTest extends AbstractFixedDurati
 	protected Iterable<SoundRecording> newSubWindowingIterable(Iterable<SoundRecording> recordings, int clipMsec, PadType padType) {
 		FixedDurationSoundRecordingIterable iterable = new FixedDurationSoundRecordingIterable(recordings, clipMsec, padType);
 		return iterable;
+	}
+	
+	@Test
+	public void testSlidingWindows() {
+		int startMsec = 0;
+		int pauseMsec = 0;		// keep this 0 otherwise assert below needs to be adjusted.
+		int htz = 1000;
+		int count = 1;
+		int sourceDurationMsec = 10 * 1000;
+		int clipLen = 1000;
+		int clipShift = 500;
+		PadType padType = PadType.NoPad;
+		Properties p = new Properties();
+		p.setProperty("status", "somevalue");
+		List<SoundRecording> recordings = SoundTestUtils.createTrainingRecordings(count, startMsec, sourceDurationMsec, pauseMsec, htz,p);
+		FixedDurationSoundRecordingIterable iterable = new FixedDurationSoundRecordingIterable(recordings, clipLen, clipShift, padType);
+		List<SoundRecording> subWindows = SoundTestUtils.iterable2List(iterable);
+		Assert.assertTrue(subWindows.size() == 20);
 	}
 
 }
