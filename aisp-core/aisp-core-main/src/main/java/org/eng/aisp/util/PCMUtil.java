@@ -99,7 +99,7 @@ public class PCMUtil {
 			throw new IllegalArgumentException("bits per sample must be 8, 16,24, or 32");
 		if (channels <= 0) 
 			throw new IllegalArgumentException("channels must be larger than 0");
-		int sampleCount = samples.length * 8 / (bitsPerSample *  channels);
+		int sampleCount = samples.length / bitsPerSample / channels * 8;
 		double result[] = new double[sampleCount];
 		ByteBuffer byteBuffer = ByteBuffer.wrap(samples);
 		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
