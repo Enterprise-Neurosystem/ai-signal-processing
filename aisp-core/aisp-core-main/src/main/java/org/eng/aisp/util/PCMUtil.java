@@ -99,7 +99,7 @@ public class PCMUtil {
 			throw new IllegalArgumentException("bits per sample must be 8, 16,24, or 32");
 		if (channels <= 0) 
 			throw new IllegalArgumentException("channels must be larger than 0");
-		int sampleCount = 8 * samples.length / (bitsPerSample * channels); 
+		int sampleCount = 8 * samples.length / (bitsPerSample * channels); 	// Multiply by 8 first for small sample lengths
 		if (sampleCount < 0) // If sample length is too large, multiply first by 8 can cause overflow, so do it last.
 			sampleCount = samples.length / (bitsPerSample * channels) * 8;
 		double result[] = new double[sampleCount];
