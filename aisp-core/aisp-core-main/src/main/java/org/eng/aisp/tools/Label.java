@@ -50,7 +50,7 @@ public class Label {
 			+ "the same file that are adjacent in time and have the same label name as \n" 
 			+ "produced by the model will be merged.\n"
 			+ "Classify mode options\n"
-			+ GetModifiedSoundOptions.ClipOnlyOptionsHelp
+			+ GetModifiedSoundOptions.ClipLenOnlyOptionsHelp
 			+ "Label examples: \n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 number1.wav number2.wav\n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 -pad duplicate number1.wav\n"
@@ -111,7 +111,7 @@ public class Label {
 			return false;
 		
 		OnlineStats stats = new OnlineStats();
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, false);	// No -label, no -balance
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, false,false);	// No -label, no -balance, no -clipShift
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 		Iterable<SoundRecording> sounds = soundOptions.getSounds();

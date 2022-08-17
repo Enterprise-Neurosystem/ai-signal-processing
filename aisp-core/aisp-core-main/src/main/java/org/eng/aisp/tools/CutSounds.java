@@ -31,7 +31,7 @@ public class CutSounds {
 			+ "destination metadata file which is written with the sounds to a destination\n"
 			+ "directory. No files will be overwritten unless the -overwrite option is used.\n"
 			+ "Options:\n"
-			+ GetModifiedSoundOptions.OptionsHelp
+			+ GetModifiedSoundOptions.ClipLenOnlyOptionsHelp
 			+ "  -o <dir>      : sets the directory to store wav files.  This will be created\n"
 			+ "      if it does not already exist. Default is the current directory.\n"
 			+ "  -dest-dir <dir> : same as -o option.\n" 
@@ -69,7 +69,7 @@ public class CutSounds {
 
 	private static boolean doMain(CommandArgs cmdargs, boolean verbose) throws IOException {
 		
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, false, false);	// No -label, -balance, or -clipShift
 		if (!soundOptions.parseOptions(cmdargs))
 			return false;		// Error message was issued.
 		Iterable<SoundRecording> sounds = soundOptions.getSounds();

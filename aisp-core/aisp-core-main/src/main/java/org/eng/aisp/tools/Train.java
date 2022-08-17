@@ -116,7 +116,7 @@ public class Train {
 		IClassifier<double[]> classifier =  modelOptions.getClassifier(); 
 		
 		// Parse the options the specify the sounds to be used.
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true, true, true);
 		if (!soundOptions.parseOptions(cmdargs))
 			return false;
 		String trainingLabel = soundOptions.getLabel();

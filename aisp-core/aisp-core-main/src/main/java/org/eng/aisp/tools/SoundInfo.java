@@ -69,7 +69,7 @@ public class SoundInfo {
 	protected static boolean doMain(CommandArgs cmdargs) throws AISPException, IOException {
 	
 		Iterable<SoundRecording> sounds; 
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, true, true);
 		if (soundOptions.hasApplicableOptions(cmdargs)) {
 			if (!soundOptions.parseOptions(cmdargs))
 				return false;

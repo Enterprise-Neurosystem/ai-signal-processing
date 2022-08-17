@@ -33,18 +33,11 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 
 	public final static int DEFAULT_CLIPSHIFT = 0;
 
-	private final static String ClipOptionsHelp = 
+	private final static String ClipLenOptionsHelp = 
              // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 			  "  -clipLen double : splits sound recordings up into clips of the given\n"
 			+ "      number of milliseconds. Set to 0 to turn off.\n"
 			+ "      Defaults to " + DEFAULT_CLIPLEN + ".\n" 
-			+ "  -clipShift double : defines the time difference between the start times of\n" 
-			+ "      the sub-windows in milliseconds. Not used unless -clipLen option is set.\n"
-			+ "      Set to 0 or the clipLen value to define rolling windows. Set to half the\n"
-			+ "      clipLen to define sub-windows in which the last half of a window overlaps\n"
-			+ "      with the first half of the window following it. In general, this value \n"
-			+ "      should be less than the clipLen value.\n" 
-			+ "      Defaults to " + DEFAULT_CLIPSHIFT + ".\n" 
 			+ "  -pad (no|zero|duplicate): when clips are shorter than the requests clip\n"
 			+ "      padding can be added to make all clips the same length. Some models may\n"
 			+ "      require this.  Zero padding sets the added samples to zero.  Duplicate\n"
@@ -53,10 +46,20 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 			+ "      Default is no padding.\n"
 		;
 
-	@SuppressWarnings("hiding")
-	public final static String OptionsHelp = 
-		GetModifiedSoundOptions.ClipOnlyOptionsHelp 
-		+ "  -balance: a flag that causes an equal number of sounds for each label\n"
+	private final static String ClipShiftOptionsHelp = 
+            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+			  "  -clipShift double : defines the time difference between the start times of\n" 
+			+ "      the sub-windows in milliseconds. Not used unless -clipLen option is set.\n"
+			+ "      Set to 0 or the clipLen value to define rolling windows. Set to half the\n"
+			+ "      clipLen to define sub-windows in which the last half of a window overlaps\n"
+			+ "      with the first half of the window following it. In general, this value \n"
+			+ "      should be less than the clipLen value.\n" 
+			+ "      Defaults to " + DEFAULT_CLIPSHIFT + ".\n" 
+		;
+
+		
+	private final static String BalanceOptionsHelp = 
+		  "  -balance: a flag that causes an equal number of sounds for each label\n"
 		+ "      value using down sampling for evaluation and training if applicable.\n"
 		+ "      Equivalent to '-balance-with down'.\n" 
 //         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -72,41 +75,58 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 //		+ "      this assures that the folds used the same across the multiple trainings.\n"
 //		+ "      In general, this may be desireable, but will cause all data to be pulled\n"
 //		+ "      into memory when using the -clipLen option.\n"
-		+ "  -label <name> : required for most operations (i.e. training, evaluation)\n" 
+		;
+	
+	private static final String LabelOptionsHelp = 
+		  "  -label <name> : required for most operations (i.e. training, evaluation)\n" 
 		+ "      Required if balancing is requested regardless of the operation performed.\n" 
+		;
+	public static final String OptionsWithoutBalanceHelp =
+		GetModifiedSoundOptions.ClipLenOnlyOptionsHelp 
+		+ GetModifiedSoundOptions.ClipShiftOptionsHelp 
+		+ LabelOptionsHelp
+		;
+
+	@SuppressWarnings("hiding")
+	public final static String OptionsHelp = 
+		GetModifiedSoundOptions.OptionsWithoutBalanceHelp 
+		+ BalanceOptionsHelp
 		;
 
 	/**
 	 * Use this when not enabling rebalancing or requiring a label.
 	 */
-	public final static String ClipOnlyOptionsHelp = 
+	public final static String ClipLenOnlyOptionsHelp = 
 			GetSoundOptions.OptionsHelp
-			+ ClipOptionsHelp;
+			+ ClipLenOptionsHelp;
+
 		
 
 	private String label;
 	private boolean requireLabel;
 
 	private boolean enableBalancing;
+	private boolean enableClipShift;
 	private IShuffleIterable<SoundRecording> clippedUnbalancedSounds;
 	private int clipLenMsec = DEFAULT_CLIPLEN;
 	private int clipShiftMsec = DEFAULT_CLIPLEN;
 
-	/**
-	 * A convenience on {@link #GetModifiedSoundOptions(boolean, boolean)} that enables balancing of sounds.
-	 */
-	public GetModifiedSoundOptions(boolean requireLabel) {
-		this(requireLabel, true);
-	}
+//	/**
+//	 * A convenience on {@link #GetModifiedSoundOptions(boolean, boolean)} that enables balancing of sounds.
+//	 */
+//	public GetModifiedSoundOptions(boolean requireLabel) {
+//		this(requireLabel, true);
+//	}
 
 	/**
 	 * 
 	 * @param requireLabel if true, then require the -label option.
 	 * @param enableBalancing if true, then enable the -balance options.
 	 */
-	public GetModifiedSoundOptions(boolean requireLabel, boolean enableBalancing) {
+	public GetModifiedSoundOptions(boolean requireLabel, boolean enableBalancing, boolean enableClipShift) {
 		this.requireLabel = requireLabel;
 		this.enableBalancing = enableBalancing;
+		this.enableClipShift = enableClipShift;
 	}
 
 
@@ -126,13 +146,14 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 			return false;
 		}
 
-		if (cmdargs.hasArgument("clipShift") && !cmdargs.hasArgument("clipLen")) {
-			System.err.println("clipShift argument is only valid with the clipLen argument.");
-			return false;
+		if (enableClipShift) {
+			if (cmdargs.hasArgument("clipShift") && !cmdargs.hasArgument("clipLen")) {
+				System.err.println("clipShift argument is only valid with the clipLen argument.");
+				return false;
+			}
+			this.clipShiftMsec = cmdargs.getOption("clipShift", DEFAULT_CLIPSHIFT); 
 		}
-
 		this.clipLenMsec = cmdargs.getOption("clipLen", DEFAULT_CLIPLEN); 
-		this.clipShiftMsec = cmdargs.getOption("clipShift", DEFAULT_CLIPSHIFT); 
 
 		PadType padType; 
 		boolean repeatableShuffle = !cmdargs.getFlag("no-repeatability"); 
