@@ -35,7 +35,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 
 	private final static String ClipLenOptionsHelp = 
              // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-			  "  -clipLen double : splits sound recordings up into clips of the given\n"
+			  "  -clipLen int: splits sound recordings up into clips of the given\n"
 			+ "      number of milliseconds. Set to 0 to turn off.\n"
 			+ "      Defaults to " + DEFAULT_CLIPLEN + ".\n" 
 			+ "  -pad (no|zero|duplicate): when clips are shorter than the requests clip\n"
@@ -48,7 +48,7 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 
 	private final static String ClipShiftOptionsHelp = 
             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-			  "  -clipShift double : defines the time difference between the start times of\n" 
+			  "  -clipShift int : defines the time difference between the start times of\n" 
 			+ "      the sub-windows in milliseconds. Not used unless -clipLen option is set.\n"
 			+ "      Set to 0 or the clipLen value to define rolling windows. Set to half the\n"
 			+ "      clipLen to define sub-windows in which the last half of a window overlaps\n"
@@ -230,11 +230,18 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 	 * @param useUpSampling
 	 * @return
 	 */
+    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	// Sounds will be clipped every 50 msec into 100.0 msec clips (padding=NoPad)
 	private IShuffleIterable<SoundRecording> getRequestedSounds(IShuffleIterable<SoundRecording> sounds,
-			String trainingLabel, boolean repeatableShuffle, double clipLenMsec, int clipShiftMsec, PadType padType,
+			String trainingLabel, boolean repeatableShuffle, int clipLenMsec, int clipShiftMsec, PadType padType,
 			boolean balancedLabels, int balancedCount, boolean useUpSampling) {
 		if (clipLenMsec > 0) { 
-			System.out.println("Sounds will be clipped into " + clipLenMsec + " millisecond clips (padding=" + padType.name() + ").");
+			String msg;
+			if (clipShiftMsec != 0)
+				msg = "Sounds will be clipped every " + clipShiftMsec + " msec into " + clipLenMsec + " msec clips (padding=" + padType.name() + ")";
+			else
+				msg = "Sounds will be clipped every " + clipLenMsec + " msec into " + clipLenMsec + " msec clips (padding=" + padType.name() + ")";
+			System.out.println(msg);
 			sounds = new FixedDurationSoundRecordingShuffleIterable(sounds, clipLenMsec, clipShiftMsec, padType);
 //			System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 //			if (repeatableShuffle && balancedLabels) {
