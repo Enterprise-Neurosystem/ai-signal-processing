@@ -24,16 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.google.gson.Gson;
-
 import org.eng.aisp.AISPException;
 import org.eng.aisp.AISPRuntime;
 import org.eng.aisp.SoundClip;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.classifier.Classification;
 import org.eng.aisp.classifier.IFixedClassifier;
-import org.eng.aisp.client.IAsyncSensorClient.ICommandListener;
-import org.eng.aisp.dataset.IReferencedSoundSpec;
 import org.eng.aisp.dataset.MetaData;
 import org.eng.aisp.dataset.ReferencedSoundSpec;
 import org.eng.util.CommandArgs;
@@ -49,7 +45,7 @@ public class Label {
 			+ "typically used to classify sub-segments of the input sound(s).  Segments from\n"
 			+ "the same file that are adjacent in time and have the same label name as \n" 
 			+ "produced by the model will be merged.\n"
-			+ "Classify mode options\n"
+			+ GetTrainedModelOptions.OptionsHelp
 			+ GetModifiedSoundOptions.ClipLenOnlyOptionsHelp
 			+ "Label examples: \n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 number1.wav number2.wav\n"
