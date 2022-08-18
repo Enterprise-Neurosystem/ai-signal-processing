@@ -15,12 +15,17 @@
  *******************************************************************************/
 package org.eng.aisp.tools;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eng.aisp.IDataWindow.PadType;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.util.BalancedLabeledWindowShuffleIterable;
 import org.eng.aisp.util.FixedDurationSoundRecordingShuffleIterable;
 import org.eng.util.CommandArgs;
 import org.eng.util.IShuffleIterable;
+import org.eng.util.IterableIterable;
+import org.eng.util.ShufflizingIterable;
 
 /**
  * Extends the super class to support manipulation of the sounds, probably for training/evaluation.
@@ -254,21 +259,66 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 //			}
 		}
 		this.clippedUnbalancedSounds = sounds;
-		if (balancedLabels) {
-//			TrainingSetInfo tsi = TrainingSetInfo.getInfo(sounds);
+		if (balancedLabels) 
+			sounds = getBalancedSounds(sounds, trainingLabel, balancedCount, useUpSampling);
+		return sounds;
+	}
+
+
+	/**
+	 * Get a iterable of balanced sounds for 1 or more training labels.
+	 * @param sounds
+	 * @param trainingLabel 1 or more training labels separated by commas.
+	 * @param balancedCount
+	 * @param useUpSampling
+	 * @return a single iterable that balances label values within each training label.
+	 */
+	private IShuffleIterable<SoundRecording> getBalancedSounds(IShuffleIterable<SoundRecording> sounds,
+			String trainingLabel, int balancedCount, boolean useUpSampling) {
+		// This the usual case, a single training label.
+		if (!trainingLabel.contains(","))
+			return  this.getSingleLabelBalancedSounds(sounds, trainingLabel, balancedCount, useUpSampling);
+		
+		// Support models that take a list of comma-spearated labels
+		String[] trainingLabels = trainingLabel.split(",");
+		List<IShuffleIterable<SoundRecording>> soundList = new ArrayList<>();
+		for (String label: trainingLabels) {
+			IShuffleIterable<SoundRecording> iter = this.getSingleLabelBalancedSounds(sounds, label, balancedCount, useUpSampling);
+			soundList.add(iter);
+		}
+		// This is not optimal as we don't have a ShuffleIterableIterable and so have to use IterableIterable with ShufflizingIterable.
+		Iterable<SoundRecording> allSounds = new IterableIterable<SoundRecording>(soundList);
+		sounds = new ShufflizingIterable<SoundRecording>(allSounds);
+		return sounds;
+
+	}
+
+	/**
+	 * Get a set of balanced sounds for the given training label which is assumed not to be a multi-label (csv separated).
+	 * @param sounds
+	 * @param trainingLabel
+	 * @param balancedCount
+	 * @param useUpSampling
+	 * @return
+	 */
+	private IShuffleIterable<SoundRecording> getSingleLabelBalancedSounds(IShuffleIterable<SoundRecording> sounds,
+			String trainingLabel, int balancedCount, boolean useUpSampling) {
+		if (trainingLabel.contains(","))
+			throw new IllegalArgumentException("Training label must not be component/multi, but contains a comma indicating such.");
+		
+		//			TrainingSetInfo tsi = TrainingSetInfo.getInfo(sounds);
 //			int minLabels = findMinLabelCount(tsi, trainingLabel); 
 //			System.out.println("Using a maximum of " + minLabels + " per label value to train and evaluate model.");
 //			sounds = new BoundedLabeledWindowShuffleIterable<SoundRecording>(sounds, repeatableShuffle, trainingLabel, minLabels);
 //			sounds = new BoundedLabelValueWindowShuffleIterable<SoundRecording>(sounds, repeatableShuffle, trainingLabel, minLabels);
-			if (balancedCount > 0)  {
-				System.out.println("Balancing training data with " + balancedCount + " samples per label value.");
-				sounds = new BalancedLabeledWindowShuffleIterable<SoundRecording>(sounds, trainingLabel, balancedCount); 
-			} else {
-				System.out.println("Balancing training data using " + (useUpSampling ? "up sampling." : "down sampling."));
-				sounds = new BalancedLabeledWindowShuffleIterable<SoundRecording>(sounds, trainingLabel, useUpSampling);
-			}
-//			System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
+		if (balancedCount > 0)  {
+			System.out.println("Balancing training data with " + balancedCount + " samples per " + trainingLabel + " label value.");
+			sounds = new BalancedLabeledWindowShuffleIterable<SoundRecording>(sounds, trainingLabel, balancedCount); 
+		} else {
+			System.out.println("Balancing training data using " + (useUpSampling ? "up sampling." : "down sampling on label " + trainingLabel));
+			sounds = new BalancedLabeledWindowShuffleIterable<SoundRecording>(sounds, trainingLabel, useUpSampling);
 		}
+//			System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 		return sounds;
 	}
 

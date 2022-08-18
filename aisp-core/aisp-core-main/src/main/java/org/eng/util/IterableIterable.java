@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
  */
 public class IterableIterable<T> implements Iterable<T> {
 
-	protected final Iterable<Iterable<T>> iterables;
+	protected final Iterable<? extends Iterable<T>> iterables;
 	
 	/**
 	 * The Iterator created by the IterableIterable class.
@@ -38,9 +38,9 @@ public class IterableIterable<T> implements Iterable<T> {
 	private static class IteratableIterator<T> implements Iterator<T> {
 
 		protected Iterator<T> currentIterator = null;
-		protected final Iterator<Iterable<T>> iterables;
+		protected final Iterator<? extends Iterable<T>> iterables;
 
-		public IteratableIterator(Iterator<Iterable<T>> iterables) {
+		public IteratableIterator(Iterator<? extends Iterable<T>> iterables) {
 			this.iterables = iterables;
 			if (iterables.hasNext())
 				currentIterator = iterables.next().iterator();
@@ -80,7 +80,7 @@ public class IterableIterable<T> implements Iterable<T> {
 	 * Create the instance to create an Iterator that iterates of each of the items in the iterables as if they were in a single Iterable.
 	 * @param iterables
 	 */
-	public IterableIterable(Iterable<Iterable<T>> iterables) {
+	public IterableIterable(Iterable<? extends Iterable<T>> iterables) {
 		this.iterables = iterables;
 	}
 
