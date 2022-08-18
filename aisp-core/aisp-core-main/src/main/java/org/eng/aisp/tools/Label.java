@@ -124,7 +124,6 @@ public class Label {
 
 		// See if there are duplicate filenames so that we know whether or not to include indices and start/stop times.
 		Map<String, List<ReferencedSoundSpec>> labelings = new HashMap<>();
-		String trainedLabel = classifier.getTrainedLabel();
 		for (SoundRecording sr : sounds) {
 			Properties tags = sr.getTagsAsProperties();
 			String fileName = tags.getProperty(MetaData.FILENAME_TAG);
@@ -132,15 +131,11 @@ public class Label {
 			// Classify the sample and keep track of the amount of time. 
 			SoundClip clip = sr.getDataWindow(); 
 			Map<String,Classification> classifications = classifier.classify(clip);
-			Classification c = classifications.get(trainedLabel);
-			if (c == null) {
-				System.err.println("Model did not produce a classification with label " + trainedLabel);
-				continue;
-			}
+
 			int startMsec = (int)Math.round(clip.getStartTimeMsec()); 
 			int endMsec = (int)Math.round(clip.getEndTimeMsec()); 
-			Properties labels = new Properties();
-			labels.put(trainedLabel, c.getLabelValue());
+			Properties labels = getLabels(classifications); 
+
 			ReferencedSoundSpec rss = new ReferencedSoundSpec(fileName, startMsec, endMsec, labels,null);
 			List<ReferencedSoundSpec> rssList = labelings.get(fileName);
 			if (rssList == null) {
@@ -157,12 +152,23 @@ public class Label {
 		MetaData md = new MetaData();
 		for (String fn : fileNames) {
 			List<ReferencedSoundSpec> rssList = labelings.get(fn);
-			rssList = ReferencedSoundSpec.mergeLabelValues(rssList, trainedLabel);
+			rssList = ReferencedSoundSpec.mergeLabelValues(rssList);
 			for (ReferencedSoundSpec rss : rssList) 
 				md.add(rss);
 		}
 		md.write(System.out, true, false);
 
+	}
+
+
+	private Properties getLabels(Map<String, Classification> classifications) {
+		Properties labels = new Properties();
+		for (String labelName : classifications.keySet()) {
+			Classification c = classifications.get(labelName);
+			String labelValue = c.getLabelValue();
+			labels.put(labelName, labelValue);
+		}
+		return labels;
 	}
 
 
