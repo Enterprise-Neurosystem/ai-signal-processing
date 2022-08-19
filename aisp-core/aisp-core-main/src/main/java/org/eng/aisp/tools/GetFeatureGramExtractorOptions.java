@@ -79,7 +79,7 @@ public class GetFeatureGramExtractorOptions {
 	 */
 	public boolean parseOptions(CommandArgs cmdargs) {
 		// FeatureExtractor options
-		int minHz = cmdargs.getOption("minHtz",Default_minHz);
+		int minHz = cmdargs.getOption("minHz",Default_minHz);
 		int maxHz = cmdargs.getOption("maxHz",Default_maxHz);
 		int featureLen = cmdargs.getOption("featureLen",Default_featureLen);;
 		int numBands= cmdargs.getOption("numBands", MFCCFeatureExtractor.DEFAULT_NUM_BANDS);
