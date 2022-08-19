@@ -47,7 +47,7 @@ public class GetFeatureGramExtractorOptions {
 	
 	public final static String OptionsHelp = 
 			 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-			  "Spectrogram extractor options:"
+			  "Spectrogram extractor options:\n"
 			+ "  -fft 	: use FFT feature extractor.\n" 
 			+ "  -logmel : use LogMel feature extractor.\n" 
 			+ "  -mffb 	: use MFFB feature extractor.\n" 
@@ -57,8 +57,8 @@ public class GetFeatureGramExtractorOptions {
 			+ "  -windowSizeMsec <msec> : specifies the size of the sub-windows in msec\n"
 			+ "     on which features are extracted and spectrograms created.\n"
 			+ "     Default is " + DEFAULT_WINDOW_SIZE_MSEC + ".\n"
-			+ "  -windowShiftMsec <msec> : specifies the difference in start time between adjacent "
-			+ "     sub windows. 0 defines rolling windows. "
+			+ "  -windowShiftMsec <msec> : specifies the difference in start time between adjacent\n"
+			+ "     sub windows. 0 defines rolling windows.\n"
 			+ "     Default is " + DEFAULT_WINDOW_SHIFT_MSEC + ".\n"
 			+ "  -minHz <htz> : the lowest frequency in hertz to consider.\n" 
 			+ "     Default is " + Default_minHz + ".\n"
