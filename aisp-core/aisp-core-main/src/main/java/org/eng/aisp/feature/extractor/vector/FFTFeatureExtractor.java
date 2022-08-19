@@ -15,10 +15,6 @@
  *******************************************************************************/
 package org.eng.aisp.feature.extractor.vector;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
-import org.eng.aisp.IDataWindow;
 import org.eng.aisp.IDataWindow;
 import org.eng.aisp.feature.DoubleFeature;
 import org.eng.aisp.feature.IFeature;
@@ -61,8 +57,8 @@ public class FFTFeatureExtractor extends AbstractCachingWindowProcessor<IDataWin
 	 * A convenience on {@link #FFTFeatureExtractor(boolean, boolean, int, double, int, int)} with useLog={@value #DEFAULT_USE_LOG}.
 	 * @deprecated in favor of {@link #FFTFeatureExtractor(double, int, int, boolean, boolean, int)}
 	 */
-	public FFTFeatureExtractor(boolean norm, int maxFFTSize, double targetSamplingRate, int minHtz, int maxHtz) {
-		this(DEFAULT_USE_LOG, norm, maxFFTSize, DEFAULT_RESAMPLING_RATE, minHtz, maxHtz);
+	protected FFTFeatureExtractor(boolean norm, int maxFFTSize, double targetSamplingRate, int minHtz, int maxHtz) {
+		this(DEFAULT_USE_LOG, norm, maxFFTSize, targetSamplingRate, minHtz, maxHtz);
 		
 	}
 	/**
