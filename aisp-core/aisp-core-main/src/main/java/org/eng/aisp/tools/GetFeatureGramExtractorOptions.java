@@ -22,6 +22,7 @@ import org.eng.aisp.feature.extractor.vector.FFTFeatureExtractor;
 import org.eng.aisp.feature.extractor.vector.LogMelFeatureExtractor;
 import org.eng.aisp.feature.extractor.vector.MFCCFeatureExtractor;
 import org.eng.aisp.feature.extractor.vector.MFFBFeatureExtractor;
+import org.eng.aisp.feature.extractor.vector.util.ExtendedFFT;
 import org.eng.util.CommandArgs;
 
 /**
@@ -33,31 +34,40 @@ import org.eng.util.CommandArgs;
 public class GetFeatureGramExtractorOptions {
 	final static int Default_featureLen = MFCCFeatureExtractor.DEFAULT_NUM_BANDS;
 
+	final static int Default_samplingRate = ExtendedFFT.DEFAULT_FFT_MAX_SAMPLING_RATE; 
+
 //	public static final int DEFAULT_CLIPLEN_MSEC = 0;
 
-	final static int Default_minHtz = MFCCFeatureExtractor.DEFAULT_MIN_FREQ;
+	final static int Default_minHz = MFCCFeatureExtractor.DEFAULT_MIN_FREQ;
 
-	final static int Default_maxHtz = MFCCFeatureExtractor.DEFAULT_MAX_FREQ;
+	final static int Default_maxHz = MFCCFeatureExtractor.DEFAULT_MAX_FREQ;
 
-	final static int DEFAULT_SUBWINDOW_MSEC = 50; 
+	final static int DEFAULT_WINDOW_SIZE_MSEC = 50; 
+	final static int DEFAULT_WINDOW_SHIFT_MSEC = 0; 
 	
 	public final static String OptionsHelp = 
-			  "Spectrogram extractor options:"
+			 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+			  "Spectrogram extractor options:\n"
 			+ "  -fft 	: use FFT feature extractor.\n" 
 			+ "  -logmel : use LogMel feature extractor.\n" 
 			+ "  -mffb 	: use MFFB feature extractor.\n" 
 			+ "  -mfcc 	: use MFCC feature extractor.  The default.\n" 
 			+ "  -numBands <n>	: Set the number of bands used for the mfcc,mffb and \n"
 			+ "     logmel feature extractors. The default is " + MFCCFeatureExtractor.DEFAULT_NUM_BANDS + ".\n" 
-			+ "  -subWindowMsec <msec> : specifies the size of the sub-windows in msec\n"
+			+ "  -windowSizeMsec <msec> : specifies the size of the sub-windows in msec\n"
 			+ "     on which features are extracted and spectrograms created.\n"
-			+ "     Default is " + DEFAULT_SUBWINDOW_MSEC + ".\n"
-			+ "  -minHtz <htz> : the lowest frequency in hertz to consider.\n" 
-			+ "     Default is " + Default_minHtz + ".\n"
-			+ "  -maxHtz <htz> : the largest frequency in hertz to consider.\n" 
-			+ "     Default is " + Default_maxHtz + ".\n"
+			+ "     Default is " + DEFAULT_WINDOW_SIZE_MSEC + ".\n"
+			+ "  -windowShiftMsec <msec> : specifies the difference in start time between adjacent\n"
+			+ "     sub windows. 0 defines rolling windows.\n"
+			+ "     Default is " + DEFAULT_WINDOW_SHIFT_MSEC + ".\n"
+			+ "  -minHz <htz> : the lowest frequency in hertz to consider.\n" 
+			+ "     Default is " + Default_minHz + ".\n"
+			+ "  -maxHz <htz> : the largest frequency in hertz to consider.\n" 
+			+ "     Default is " + Default_maxHz + ".\n"
 			+ "  -featureLen <N> : the number of features in the feature vector.\n" 
 			+ "     Default is " + Default_featureLen + ".\n"
+			+ "  -resamplingRate <N> : the sampling rate of the sounds.\n" 
+			+ "     Default is " + Default_samplingRate + ".\n"
 	;
 	
 	private FeatureGramDescriptor<double[],double[]> fge;
@@ -69,13 +79,14 @@ public class GetFeatureGramExtractorOptions {
 	 */
 	public boolean parseOptions(CommandArgs cmdargs) {
 		// FeatureExtractor options
-		int minHtz = cmdargs.getOption("minHtz",Default_minHtz);
-		int maxHtz = cmdargs.getOption("maxHtz",Default_maxHtz);
+		int minHz = cmdargs.getOption("minHz",Default_minHz);
+		int maxHz = cmdargs.getOption("maxHz",Default_maxHz);
 		int featureLen = cmdargs.getOption("featureLen",Default_featureLen);;
 		int numBands= cmdargs.getOption("numBands", MFCCFeatureExtractor.DEFAULT_NUM_BANDS);
-		int subWindowMsec = cmdargs.getOption("subWindowMsec", DEFAULT_SUBWINDOW_MSEC);
+		int windowSizeMsc = cmdargs.getOption("windowSizeMsec", DEFAULT_WINDOW_SIZE_MSEC);
+		int windowShiftMsec = cmdargs.getOption("windowShiftMsec", DEFAULT_WINDOW_SHIFT_MSEC);
 
-		int resamplingRate = 0;	// Don't resample
+		int resamplingRate =  cmdargs.getOption("resamplingRate",Default_samplingRate);
 		boolean isMFCC= cmdargs.getFlag("mfcc"); 
 		boolean isMFFB =cmdargs.getFlag("mffb");  
 		boolean isFFT = cmdargs.getFlag("fft");
@@ -90,17 +101,17 @@ public class GetFeatureGramExtractorOptions {
 
 		IFeatureExtractor<double[],double[]> extractor;
 		if (isFFT) 
-			extractor = new FFTFeatureExtractor(false, featureLen, resamplingRate, minHtz, maxHtz);
+			extractor = new FFTFeatureExtractor(resamplingRate,  minHz, maxHz, FFTFeatureExtractor.DEFAULT_NORMALIZE, FFTFeatureExtractor.DEFAULT_USE_LOG, featureLen);
 		else if (isMFCC)	
-			extractor = new MFCCFeatureExtractor(resamplingRate, numBands, minHtz, maxHtz, featureLen); 
+			extractor = new MFCCFeatureExtractor(resamplingRate, numBands, minHz, maxHz, featureLen); 
 		else if (isMFFB)	
-			extractor = new MFFBFeatureExtractor(resamplingRate, featureLen, minHtz, maxHtz, MFFBFeatureExtractor.DEFAULT_NORMALIZE, MFFBFeatureExtractor.DEFAULT_USE_LOG);
+			extractor = new MFFBFeatureExtractor(resamplingRate, featureLen, minHz, maxHz, MFFBFeatureExtractor.DEFAULT_NORMALIZE, MFFBFeatureExtractor.DEFAULT_USE_LOG);
 		else if (isLogMel)	
-			extractor = new LogMelFeatureExtractor(resamplingRate, numBands, minHtz, maxHtz, featureLen);
+			extractor = new LogMelFeatureExtractor(resamplingRate, numBands, minHz, maxHz, featureLen);
 		else
 			throw new RuntimeException("Can't determine feature extractor");
 
-		this.fge = new FeatureGramDescriptor<>(subWindowMsec, 0, extractor, null);
+		this.fge = new FeatureGramDescriptor<>(windowSizeMsc, windowShiftMsec, extractor, null);
 
 		return true;
 	}
@@ -109,8 +120,8 @@ public class GetFeatureGramExtractorOptions {
 
 	/**
 	 * @param isFFT
-	 * @param minHtz
-	 * @param maxHtz
+	 * @param minHz
+	 * @param maxHz
 	 * @param featureLen
 	 * @return
 	 */
