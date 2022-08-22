@@ -39,47 +39,53 @@ if __name__ == '__main__':
         'Each wav file listed in the metadata file will have a corresponding .txt'
         'file with the same base name as the .wav file.'
         'The output is 3 white-space separated columns. Each row defines a labeled\n'
-        'segment. Columns are defined as follows:\n'
+        'segment. columns are defined as follows:\n'
         '  1: the offset in seconds of the start of the segment\n'
         '  2: the offset in seconds of the end of the segment\n'
         '  3: the single label value to assign to the segment\n' 
         ,formatter_class=RawTextHelpFormatter)
-    argp.add_argument('metadata_file', help='Specifies name of the metadata file to be converted to 1 or more Audacity files', default=None, 
-                      type=str, nargs=1)
+    argp.add_argument('metadata_files', help='Specifies name of 1 or more metadata files to be converted to 1 or more Audacity files', default=None, 
+                      type=str, nargs='+')
     # argp.add_argument('-wav', help='Specifies name of the wav file to which the labels apply', default=None, required=True, type=str)
     # argp.add_argument('-audacity', help='Specifies the name of the Audacity labels file. Default is labels.txt.', default="labels.txt", type=str)
     # argp.add_argument('-label', help='The label name to use in the output. Default is state.', default='state', type=str)
     # argp.add_argument('-gap-label-value', help='The label value to apply to the gaps in the labels specified in the Audacity labels file. Default is None and will not be applied.', default=None, type=str)
     args = argp.parse_args()
-    metadata_file = args.metadata_file[0]
-    segmentations = {}
-    with open(metadata_file) as in_file: 
-        for line in in_file: 
-            fields=line.split(',')
-            file = fields[0] 
-            label=fields[1]
-            if ';' in label:
-                label = label.split(';')    # Take only the first label, for now.
-                label = label[0]            
-            label = label.split('=')[1] #  label value
-            segment = [ label ]                # The whole file
-            if '[' in file:
-                sp = file.split('[')
-                file = sp[0]
-                right = sp[1] 
-                numbers = right.split(']')[0]
-                numbers = numbers.split('-')
-                start = int(numbers[0]) / 1000.0   
-                end = int(numbers[1]) / 1000.0
-                segment = [label, start, end]
-            else:
-                print("No segment information for file " + file + ". Skipping.")
-            segments = segmentations.get(file)
-            if segments is None:
-                segments = [ segment ] 
-            else:
-                segments.append(segment)
-            segmentations[file] = segments
+    metadata_files = args.metadata_files
+    all_lines= []
+    for file in metadata_files: 
+        with open(file) as in_file: 
+            for line in in_file: 
+                all_lines.append(line)
+    all_lines.sort()    # make sure all file references are sequential.
+    
+    segmentations = {}  # Map of file to list of segments.
+    for line in all_lines: 
+        fields=line.split(',')
+        file = fields[0] 
+        label=fields[1]
+        if ';' in label:
+            label = label.split(';')    # Take only the first label, for now.
+            label = label[0]            
+        label = label.split('=')[1] #  label value
+        segment = [ label ]                # The whole file
+        if '[' in file:
+            sp = file.split('[')
+            file = sp[0]
+            right = sp[1] 
+            numbers = right.split(']')[0]
+            numbers = numbers.split('-')
+            start = int(numbers[0]) / 1000.0   
+            end = int(numbers[1]) / 1000.0
+            segment = [label, start, end]
+        else:
+            print("No segment information for file " + file + ". Skipping.")
+        segments = segmentations.get(file)
+        if segments is None:
+            segments = [ segment ] 
+        else:
+            segments.append(segment)
+        segmentations[file] = segments
         
     for file, segments in segmentations.items():
             basename = os.path.basename(file)

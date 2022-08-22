@@ -22,8 +22,12 @@ import org.eng.aisp.SoundRecording;
 
 public class SoundRecordingSegmentingMutator extends AbstractSegmentingMutator<SoundRecording> {
 
-	public SoundRecordingSegmentingMutator(double windowMsec, PadType padType) {
-		super(windowMsec, padType);
+	public SoundRecordingSegmentingMutator(double windowSizeMsec, PadType padType) {
+		super(windowSizeMsec, 0, padType);
+	}
+
+	public SoundRecordingSegmentingMutator(double windowSizeMsec, double windowShiftMsec, PadType padType) {
+		super(windowSizeMsec, windowShiftMsec, padType);
 	}
 
 	@Override

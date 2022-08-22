@@ -54,7 +54,7 @@ public class Train {
 			+ "Additional options:\n"
 			+ "  -noinfo : causes no information about the training data to be displayed.\n"
 			+ "      This may be useful to speed training on large training sets.\n"
-			+ "  -output <file> : a file into which the classifier can be written. Optional.\n" 
+			+ "  -file <file> : a file into which the classifier can be written. Optional.\n" 
 			+ "  -data-type (audio|xyz|mag) : specifies the type of data contained in the wav\n"
 			+ "      files and attaches an associated data type tag to the trained model.\n"
 			+ "      Default is audio.\n"
@@ -64,9 +64,9 @@ public class Train {
 
 			+ "Examples: \n"
 			+ "  ... -label status -sounds m1.csv,m2.csv-output classifier.cfr \n" 
-			+ "  ... -label status -sounds m3.csv -output classifier.cfr -model jsfile:model.js\n" 
-			+ "  ... -label status -sounds mydir -output classifier.cfr -model gmm\n" 
-			+ "  ... -label status -sounds mydir -output classifier.cfr -model gmm -data-type xyz\n" 
+			+ "  ... -label status -sounds m3.csv -file classifier.cfr -model model.js\n" 
+			+ "  ... -label status -sounds mydir -file classifier.cfr -model gmm\n" 
+			+ "  ... -label status -sounds mydir -file classifier.cfr -model gmm -data-type xyz\n" 
 			;
 
 	public static void main(String args[]) {
@@ -98,7 +98,9 @@ public class Train {
 	protected static boolean doMain(CommandArgs cmdargs, boolean verbose) throws AISPException, IOException {
 		
 		// Get the name of the model to use.
-		String outputFileName = cmdargs.getOption("output");
+		String outputFileName = cmdargs.getOption("file");	// Use the same option as CLIs that load models from the file system.
+		if (outputFileName == null)
+			outputFileName = cmdargs.getOption("output");	// For backwards compatability (used to be -output).
 		boolean noinfo = cmdargs.getFlag("noinfo");
 		boolean storeFixed = cmdargs.getFlag("fixed");
 		DataTypeEnum dataType = DataTypeEnum.Audio;
@@ -116,7 +118,7 @@ public class Train {
 		IClassifier<double[]> classifier =  modelOptions.getClassifier(); 
 		
 		// Parse the options the specify the sounds to be used.
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true, true, true);
 		if (!soundOptions.parseOptions(cmdargs))
 			return false;
 		String trainingLabel = soundOptions.getLabel();

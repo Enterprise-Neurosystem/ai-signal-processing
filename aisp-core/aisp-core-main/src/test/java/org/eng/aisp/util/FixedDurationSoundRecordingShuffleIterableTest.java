@@ -110,4 +110,25 @@ public class FixedDurationSoundRecordingShuffleIterableTest extends FixedDuratio
 		Assert.assertTrue(count == 0); 
 		
 	}
+	
+	@Test
+	public void testSlidingWindows() {
+		int startMsec = 0;
+		int pauseMsec = 0;		// keep this 0 otherwise assert below needs to be adjusted.
+		int htz = 1000;
+		int count = 1;
+		int sourceDurationMsec = 10 * 1000;
+		int clipLen = 1000;
+		int clipShift = 500;
+		PadType padType = PadType.NoPad;
+		Properties p = new Properties();
+		p.setProperty("status", "somevalue");
+		List<SoundRecording> recordings = SoundTestUtils.createTrainingRecordings(count, startMsec, sourceDurationMsec, pauseMsec, htz,p);
+		IShuffleIterable<SoundRecording> shuffledRecordings = new ShufflizingIterable(recordings);
+		FixedDurationSoundRecordingShuffleIterable iterable = new FixedDurationSoundRecordingShuffleIterable(shuffledRecordings, clipLen, clipShift, padType);
+		List<SoundRecording> subWindows = SoundTestUtils.iterable2List(iterable.shuffle());
+		Assert.assertTrue(subWindows.size() == 20-1);	// The last 1/2 second of the last segment does not start any sub-windows.
+		for (SoundRecording sr : subWindows) 
+			Assert.assertTrue(sr.getDataWindow().getDurationMsec() == clipLen);			
+	}
 }

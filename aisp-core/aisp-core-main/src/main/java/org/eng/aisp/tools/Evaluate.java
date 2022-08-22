@@ -56,9 +56,9 @@ public class Evaluate {
 			+ "  -label (see below)\n" 
 			+ "Options for pre-trained models:\n"
 			+ GetTrainedModelOptions.OptionsHelp
-			+ "  -iterations N: used with the -historize option to define the number of shuffled\n"
-			+ "      iterations over the sounds.  This is helpful to smooth the statistics.\n"
-			+ "      Default is " + DEFAULT_HISTORICAL_ITERATIONS + ".\n" 
+//			+ "  -iterations N: used with the -historize option to define the number of shuffled\n"
+//			+ "      iterations over the sounds.  This is helpful to smooth the statistics.\n"
+//			+ "      Default is " + DEFAULT_HISTORICAL_ITERATIONS + ".\n" 
 
 			+ "Options for model training and K-fold evaluation (-model or -models option) :\n"
 			+ GetModelOptions.OptionsHelp
@@ -84,13 +84,13 @@ public class Evaluate {
 			+ "  -seed <n>  : sets the seed used when shuffling the data prior to fold creation.\n"
 			+ "      The default is a fixed value for repeatability.\n" 
 			+ "Sound specification options:\n"
-			+ GetModifiedSoundOptions.OptionsHelp
+			+ GetModifiedSoundOptions.OptionsWithoutBalanceHelp
 			+ "Additional options for either mode:\n"
 			+ "  -cm : flag requesting that the confusion matrix be printed. Requires the \n"
 			+ "      -label option\n" 
 			+ "  -exportCM <csv file> :  compute and write the confusion matrix to a CSV file.\n"
 			+ "  -serialCM : cause classification to be done serially.  Only needed if a \n" 
-			+ "      classifier is found to not be thread-safe (which is tested for here).\n" 
+			+ "      classifier is found to not be thread-safe.\n" 
 			+ "Examples (local pre-trained model): \n"
 			+ "  ... -file classifier.cfr -sounds mydir\n" 
 			+ "  ... -file classifier.cfr -sounds m1.csv\n" 
@@ -101,11 +101,12 @@ public class Evaluate {
 			+ "  ... -model gmm -sounds mydir -label mylabel\n" 
 			+ "  ... -model jsfile:model.js -sounds m1.csv,m2.csv -label mylabel\n" 
 			+ "  ... -model dcase -sounds mydir1,mydir2 -label mylabel -clipLen 3000 -pad duplicate\n" 
+			+ "  ... -model dcase -sounds mydir1 -label mylabel -clipLen 3000 -clipShift 1500\n" 
 			+ "  ... -model lpnn -sounds mydir -label mylabel -folds 2\n" 
 			+ "  ... -model multilabel -sounds mydir -label mylabel -singleFold -cm\n" 
 			+ "Examples (k-fold evaluation of multiple model): \n"
 			+ "  ... -models models.js -sounds mydir -label mylabel\n" 
-			+ "  ... -models models.js -sounds mydir -label mylabel -folds 3 -balanced\n"
+			+ "  ... -models models.js -sounds mydir -label mylabel -folds 3 -kfoldBalance max\n"
 			+ "  ... -models models.js -sounds mydir -label mylabel -clipLen 4000 -pad duplicate\n"
 			;
 
@@ -178,7 +179,7 @@ public class Evaluate {
 			System.err.println("File " + modelsSpec + " not found");
 			return false;
 		}
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true, false, true);
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 
@@ -241,7 +242,7 @@ public class Evaluate {
 		int seed = cmdargs.getOption("seed", KFoldModelEvaluator.DEFAULT_SEED); 
 		boolean parallelCM = !cmdargs.getFlag("serialCM");
 
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true);
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(true, false, true);
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 
@@ -452,21 +453,21 @@ public class Evaluate {
 			throws AISPException, IOException {
 		boolean showCM = cmdargs.getFlag("cm");
 		String exportCM = cmdargs.getOption("exportCM");
-		int iterations = cmdargs.getOption("iterations", DEFAULT_HISTORICAL_ITERATIONS);
+//		int iterations = cmdargs.getOption("iterations", DEFAULT_HISTORICAL_ITERATIONS);
 		boolean parallelCM = !cmdargs.getFlag("-serialCM");
 
 		GetTrainedModelOptions modelOptions = new GetTrainedModelOptions();
 		if (!modelOptions.parseOptions(cmdargs)) 
 			return false;				// Error message was issued
 		
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false);	// If label not given, use the model's label
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false,true,true);	// If label not given, use the model's label
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 
-		if (iterations < 1) {
-			System.err.println("Number of iterations must be 1 or larger.");
-			return false;
-		}
+//		if (iterations < 1) {
+//			System.err.println("Number of iterations must be 1 or larger.");
+//			return false;
+//		}
 		
 		// Done parsing options, make sure there are none we don't recognize.
 		if (ToolUtils.hasUnusedArguments(cmdargs))

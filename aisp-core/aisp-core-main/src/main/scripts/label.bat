@@ -17,7 +17,7 @@ REM ****************************************************************************
 
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
-set CAACLASS=org.eng.aisp.tools.ListModels
+set CAACLASS=org.eng.aisp.tools.Label
 
 REM Try and set AISP_HOME and PATH automatically assuming this script is being run from AISP_HOME/bin
 if NOT [%AISP_HOME%] == [] goto homeset

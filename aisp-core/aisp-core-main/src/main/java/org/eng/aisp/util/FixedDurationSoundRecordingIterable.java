@@ -29,10 +29,17 @@ public class FixedDurationSoundRecordingIterable extends MutatingIterable<SoundR
 	/**
 	 * Create the iterable to take sub windows of the given size from the SoundRecordings in the given iterable. 
 	 * @param sounds iterable over SoundRecordings for which subwindows are desired.
-	 * @param subWindowMsec the size of all subwindows extracted from the SoundRecordings in the given iterable.
+	 * @param windowSizeMsec the size of all subwindows extracted from the SoundRecordings in the given iterable.
+	 * @param windowShiftMsec the difference in time between the start of adjacent sub windows.  Set to 0 or windowSizeMsec to get rolling windows.
+	 * Set to some other value (generally smaller then windowSizeMsec) to get sliding windows.
+	 * @param padType
 	 */
-	public FixedDurationSoundRecordingIterable(Iterable<SoundRecording> sounds, double subWindowMsec, IDataWindow.PadType padType) {
-		super(sounds, new SoundRecordingSegmentingMutator(subWindowMsec, padType));
+	public FixedDurationSoundRecordingIterable(Iterable<SoundRecording> sounds, double windowSizeMsec, double windowShiftMsec, IDataWindow.PadType padType) {
+		super(sounds, new SoundRecordingSegmentingMutator(windowSizeMsec, windowShiftMsec, padType));
+	}
+
+	public FixedDurationSoundRecordingIterable(Iterable<SoundRecording> sounds, double windowSizeMsec, IDataWindow.PadType padType) {
+		this(sounds, windowSizeMsec, 0, padType); 
 	}
 
 }

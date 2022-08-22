@@ -62,13 +62,13 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 			List<Integer> itemHashcodes = new ArrayList<>();
 			Map<String,Integer> labelCounts = new HashMap<>();
 			
-//			AISPLogger.logger.info("Enter: " + TrainingSetInfo.getInfo(iterable).prettyFormat());
+			AISPLogger.logger.info("Enter: " + TrainingSetInfo.getInfo(iterable).prettyFormat());
 			for (ITEM item : iterable) {
 				String labelValue = item.getLabels().getProperty(labelName);
-				int hashCode = item.hashCode();
-				itemLabelValues.add(labelValue);
-				itemHashcodes.add(hashCode);
 				if (labelValue != null) {
+					int hashCode = item.hashCode();
+					itemLabelValues.add(labelValue);
+					itemHashcodes.add(hashCode);
 					Integer count = labelCounts.get(labelValue);
 					int icount;
 					if (count == null)
@@ -110,6 +110,8 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 				// Loop until we've accumulated enough items having this label value.
 				while (allocated < samplesPerLabelValue) {
 					String thisItemLabel = itemLabelValues.get(index);
+					if (thisItemLabel == null)
+						index = index;
 					if (thisItemLabel.equals(labelValue)) {
 						// This is an item with the label, so add an instance of it to the items for this label.
 						int count = itemCounts.get(index) + 1;

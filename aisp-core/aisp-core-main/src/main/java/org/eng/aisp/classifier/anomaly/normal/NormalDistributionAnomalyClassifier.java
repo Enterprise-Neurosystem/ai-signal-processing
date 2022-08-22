@@ -127,7 +127,7 @@ public class NormalDistributionAnomalyClassifier extends AnomalyDetectorClassifi
 
 	public static void main(String[] args) throws AISPException {
 			CommandArgs cmdargs = new CommandArgs(args);
-			GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false);
+			GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, true, false);
 			if (!soundOptions.parseOptions(cmdargs)) {
 				return;
 			}

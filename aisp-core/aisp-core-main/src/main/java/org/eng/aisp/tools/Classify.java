@@ -105,7 +105,7 @@ public class Classify implements ICommandListener {
 			+ "      Start offset, stop offset, label value.  Offsets are in seconds.\n"
 			+ "  -cm : output a confusion matrix.  Sounds must be labeled.\n" 
 			+ "Classify mode options\n"
-			+ GetModifiedSoundOptions.ClipOnlyOptionsHelp
+			+ GetModifiedSoundOptions.ClipLenOnlyOptionsHelp
 			+ "  -t : Show classification time. Times are not effected by console output.\n" 
 			+ "Server mode options:\n"
 			+ "  -server-port port : Specifies the port for the server to run on.  Default is 80.\n" 
@@ -522,7 +522,7 @@ public class Classify implements ICommandListener {
 		PrintStream stdout = System.out;
 		System.setOut(System.err);
 		OnlineStats stats = new OnlineStats();
-		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, false);	// No -label, no -balance
+		GetModifiedSoundOptions soundOptions = new GetModifiedSoundOptions(false, false, false);	// No -label, -balance, no -clipShift
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 		IShuffleIterable<SoundRecording> sounds = soundOptions.getSounds();

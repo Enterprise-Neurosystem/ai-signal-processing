@@ -49,7 +49,18 @@ public class FixedDurationSoundRecordingShuffleIterable extends MutatingShuffleI
 	 * @param windowMsec the size of all subwindows extracted from the SoundRecordings in the given iterable.
 	 */
 	public FixedDurationSoundRecordingShuffleIterable(IShuffleIterable<SoundRecording> sounds, double windowMsec, IDataWindow.PadType padType) {
-		super(sounds, new Segmenter(new SoundRecordingSegmentingMutator(windowMsec, padType)));
+		this(sounds, windowMsec, 0, padType); 
+	}
+
+	/**
+	 * 
+	 * @param sounds iterable over SoundRecordings for which subwindows are desired.
+	 * @param windowSizeMsec the size of all subwindows extracted from the SoundRecordings in the given iterable.
+	 * @param windowShiftMsec the time between each sub-window.  Set to 0 or windowSizeMsec value to get rolling windows.  
+	 * @param padType
+	 */
+	public FixedDurationSoundRecordingShuffleIterable(IShuffleIterable<SoundRecording> sounds, double windowSizeMsec, double windowShiftMsec, IDataWindow.PadType padType) {
+		super(sounds, new Segmenter(new SoundRecordingSegmentingMutator(windowSizeMsec, windowShiftMsec, padType)));
 	}
 
 

@@ -15,9 +15,12 @@
  *******************************************************************************/
 package org.eng.aisp.dataset;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.eng.aisp.AISPException;
+import org.eng.aisp.AISPLogger;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.segmented.LabeledSegmentSpec;
 import org.eng.aisp.segmented.SoundSegmenter;
@@ -36,6 +39,106 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 	protected final String reference;
 	protected transient SoundSegmenter segmenter = null;
 	
+
+	/**
+	 * Merge adjacent references that have the same label values and that are adjacent in time.
+	 * Currently it is assumed that references having the same reference string will be sequential in the given iterable.
+	 * @param rssList
+	 * @return
+	 */
+	public static List<ReferencedSoundSpec> mergeLabelValues(Iterable<ReferencedSoundSpec> rssList) {
+		List<ReferencedSoundSpec> mergedList = new ArrayList<>();
+
+//		// First filter out references that don't have the given label.  This makes the subsequent traversal a bit easier.
+//		boolean missing = false;
+//		for (ReferencedSoundSpec rss : rssList) {
+//			String rssLabelValue = rss.getLabels().getProperty(labelName);
+//			if (rssLabelValue != null)  {
+//				mergedList.add(rss);
+//			} else {
+//				missing = true;
+//			}
+//		}
+//		if (missing)  {
+//			rssList = mergedList;
+//			mergedList = new ArrayList<>();
+//		} else {
+//			mergedList.clear();
+//		}
+
+		ReferencedSoundSpec lastRSS = null, nextFirstRSS = null;;
+		for (ReferencedSoundSpec rss : rssList) {
+//			AISPLogger.logger.info("rss=" + rss);
+			if (lastRSS != null) {
+				if (nextFirstRSS != null  && !isMergeable(lastRSS, rss)) {
+					ReferencedSoundSpec mergedRSS = createContinuousReference(nextFirstRSS, lastRSS); 
+					mergedList.add(mergedRSS);
+
+					// Starting a new merged segment.
+					nextFirstRSS = rss;
+				}
+			} else  {	// First rss in the loop
+				nextFirstRSS = rss;
+			}
+			lastRSS = rss;
+		}
+		// The last mergable segment still needs to be merged/created.
+		if (nextFirstRSS != lastRSS) {
+			ReferencedSoundSpec mergedRSS = createContinuousReference(nextFirstRSS, lastRSS); 
+			mergedList.add(mergedRSS);
+		}
+		return mergedList;
+	}
+
+
+
+	/**
+	 * Assuming the first and last RSS are the beginning and ending of a continuous mergable set of references, then create
+	 * a single reference that represents that continuous segment.
+	 * <p>
+	 * NO checking is done to make sure the label values are the same.
+	 * @param firstRSS
+	 * @param lastRSS
+	 * @return a reference with the star time of the first and end time of the 2nd and with only the given label name and value copied to the new segment.
+	 */
+	private static ReferencedSoundSpec createContinuousReference(ReferencedSoundSpec firstRSS, ReferencedSoundSpec lastRSS) {
+		String ref = firstRSS.getReference();
+//		String labelValue = firstRSS.getLabels().getProperty(labelName);
+		int startMsec= firstRSS.getStartMsec();
+		int endMsec= lastRSS.getEndMsec();
+//		Properties labels = new Properties();
+//		labels.put(labelName, labelValue);
+		ReferencedSoundSpec mergedRSS = new ReferencedSoundSpec(ref, startMsec, endMsec, lastRSS.getLabels(), null);
+		return mergedRSS;
+	}
+
+
+	
+	/**
+	 * Determine if the references and labels match and if the 2nd is adjacent in time following the 1st.
+	 * @param rss1
+	 * @param rss2
+	 * @return
+	 */
+	private static boolean isMergeable(ReferencedSoundSpec rss1, ReferencedSoundSpec rss2) {
+		String ref1 = rss1.getReference();
+		String ref2 = rss2.getReference();
+		if (!ref1.equals(ref2))
+			return false;
+		Properties l1 = rss1.getLabels();	
+		Properties l2 = rss2.getLabels();
+		if (!l1.equals(l2))	// Compares possibly multiple labels.
+			return false;
+		int end1   = rss1.getEndMsec();
+		int start2 = rss2.getStartMsec();
+		if (end1 != start2)
+			return false;
+
+		return true;
+	}
+
+
+
 	public ReferencedSoundSpec(String reference, Properties labels, Properties tags) {
 		this(reference, LabeledSegmentSpec.NON_SEGMENTING_VALUE, LabeledSegmentSpec.NON_SEGMENTING_VALUE, labels,tags);
 	}
@@ -109,8 +212,6 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 		return "ReferencedSoundSpec [reference=" + reference + ", getStartMsec()=" + getStartMsec() + ", getEndMsec()="
 				+ getEndMsec() + ", getLabels()=" + getLabels() + ", getTags()=" + getTags() + "]";
 	}
-
-
 
 
 
