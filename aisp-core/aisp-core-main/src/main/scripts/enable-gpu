@@ -24,7 +24,7 @@ Sets up the GPU runtime for the Java (and Python) runtimes, including
    directory in $cudalibdirs found to exist.
 EOF
 }
-cudalibdirs="/usr/local/cuda-10.2/lib64 /usr/local/lib/cuda10.2/lib64"
+cudalibdirs="/usr/local/cuda-11.2/lib64 /usr/local/lib/cuda11.2/lib64"
 ###############################################################################################
 # First, make sure this is not being executed and instead is being sourced.
 if [[ "$(basename -- "$0")" == "enable-gpu" ]]; then
