@@ -30,16 +30,16 @@ def as_metadata(wav_file, start_msec, end_msec, label_name, label_value):
 if __name__ == '__main__':
     argp = argparse.ArgumentParser(description=
         #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        'Converts an AISP metadata labels file to 1 or more Audacity label files.n' 
+        'Converts an AISP metadata labels file to 1 or more Audacity label files.\n' 
         'The input Audacity label file contains 1 or more rows, each\n' 
-        'The input metadata file has segmented audio labeling. For example,'
+        'The input metadata file has segmented audio labeling. For example,\n'
         '  mysound1.wav[1300-2100],state=abnormal,\n'
         '  mysound1.wav[2100-3000],state=normal,\n'
         '  mysound2.wav[1000-4000],state=abnormal,\n'
-        'Each wav file listed in the metadata file will have a corresponding .txt'
-        'file with the same base name as the .wav file.'
+        'Each wav file listed in the metadata file will have a corresponding .txt\n'
+        'file with the same base name as the .wav file.\n'
         'The output is 3 white-space separated columns. Each row defines a labeled\n'
-        'segment. columns are defined as follows:\n'
+        'segment. Columns are defined as follows:\n'
         '  1: the offset in seconds of the start of the segment\n'
         '  2: the offset in seconds of the end of the segment\n'
         '  3: the single label value to assign to the segment\n' 
