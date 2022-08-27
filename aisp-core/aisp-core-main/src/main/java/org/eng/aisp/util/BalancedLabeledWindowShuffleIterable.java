@@ -62,7 +62,7 @@ public class BalancedLabeledWindowShuffleIterable<ITEM extends ILabeledDataWindo
 			List<Integer> itemHashcodes = new ArrayList<>();
 			Map<String,Integer> labelCounts = new HashMap<>();
 			
-			AISPLogger.logger.info("Enter: " + TrainingSetInfo.getInfo(iterable).prettyFormat());
+//			AISPLogger.logger.info("Enter: " + TrainingSetInfo.getInfo(iterable).prettyFormat());
 			for (ITEM item : iterable) {
 				String labelValue = item.getLabels().getProperty(labelName);
 				if (labelValue != null) {
