@@ -36,7 +36,7 @@ export NV_CUDA_COMPAT_PACKAGE="cuda-compat-11-2"
 
 # For libraries in the cuda-compat-* package: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends cuda-cudart-11-2=${NV_CUDA_CUDART_VERSION} ${NV_CUDA_COMPAT_PACKAGE} && \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends cuda-cudart-11-2=${NV_CUDA_CUDART_VERSION} ${NV_CUDA_COMPAT_PACKAGE} && \
 sudo ln -s cuda-11.2 /usr/local/cuda && \
 sudo rm -rf /var/lib/apt/lists/*
 
@@ -61,7 +61,8 @@ export NV_LIBNCCL_PACKAGE_VERSION="2.8.4-1"
 export NV_LIBNCCL_PACKAGE="${NV_LIBNCCL_PACKAGE_NAME}=${NV_LIBNCCL_PACKAGE_VERSION}+cuda11.2"
 
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends cuda-libraries-11-2=${NV_CUDA_LIB_VERSION} \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+	                                        cuda-libraries-11-2=${NV_CUDA_LIB_VERSION} \
                                                 ${NV_LIBNPP_PACKAGE} \
                                                 cuda-nvtx-11-2=${NV_NVTX_VERSION} \
                                                 libcusparse-11-2=${NV_LIBCUSPARSE_VERSION} \
@@ -79,7 +80,7 @@ export NV_CUDNN_PACKAGE="libcudnn8=$NV_CUDNN_VERSION-1+cuda11.2"
 export NV_CUDNN_PACKAGE_NAME="libcudnn8"
 
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends ${NV_CUDNN_PACKAGE} && \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends ${NV_CUDNN_PACKAGE} && \
 sudo apt-mark hold ${NV_CUDNN_PACKAGE_NAME} && \
 sudo rm -rf /var/lib/apt/lists/*
 
