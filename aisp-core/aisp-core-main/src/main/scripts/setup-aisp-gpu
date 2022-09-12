@@ -22,48 +22,66 @@ fi
 # NVIDIA driver should be installed on host OS
 #
 
-## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/10.2/ubuntu18.04-x86_64/base/Dockerfile
-sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends gnupg2 curl ca-certificates wget && \
-sudo rm -rf /var/lib/apt/lists/* && \
-sudo wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb && \
-sudo dpkg -i cuda-keyring_1.0-1_all.deb
+## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.2.2/ubuntu1804/base/Dockerfile
+export NVARCH="x86_64"
 
-export CUDA_VERSION="10.2.89"
-export CUDA_PKG_VERSION="10-2=$CUDA_VERSION-1"
+sudo apt-get update && \
+sudo apt-get install -y --no-install-recommends gnupg2 curl ca-certificates && \
+sudo curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/${NVARCH}/3bf863cc.pub | apt-key add - && \
+sudo echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/${NVARCH} /" > /etc/apt/sources.list.d/cuda.list && \
+sudo rm -rf /var/lib/apt/lists/*
+
+export NV_CUDA_CUDART_VERSION="11.2.152-1"
+export NV_CUDA_COMPAT_PACKAGE="cuda-compat-11-2"
 
 # For libraries in the cuda-compat-* package: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends cuda-cudart-$CUDA_PKG_VERSION cuda-compat-10-2 && \
-sudo ln -s cuda-10.2 /usr/local/cuda && \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends cuda-cudart-11-2=${NV_CUDA_CUDART_VERSION} ${NV_CUDA_COMPAT_PACKAGE} && \
+sudo ln -s cuda-11.2 /usr/local/cuda && \
 sudo rm -rf /var/lib/apt/lists/*
 
 # Required for nvidia-docker v1
-echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
-echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+sudo echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+sudo echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
 
 export PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
 export LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 
-## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/10.2/ubuntu18.04-x86_64/runtime/Dockerfile
-export NCCL_VERSION=2.9.6
+## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.2.2/ubuntu1804/runtime/Dockerfile
+export NV_CUDA_LIB_VERSION="11.2.2-1"
+export NV_LIBNPP_VERSION="11.3.2.152-1"
+export NV_LIBNPP_PACKAGE="libnpp-11-2=${NV_LIBNPP_VERSION}"
+export NV_NVTX_VERSION="11.2.152-1"
+export NV_LIBCUSPARSE_VERSION="11.4.1.1152-1"
+export NV_LIBCUBLAS_PACKAGE_NAME="libcublas-11-2"
+export NV_LIBCUBLAS_VERSION="11.4.1.1043-1"
+export NV_LIBCUBLAS_PACKAGE="${NV_LIBCUBLAS_PACKAGE_NAME}=${NV_LIBCUBLAS_VERSION}"
+export NV_LIBNCCL_PACKAGE_NAME="libnccl2"
+export NV_LIBNCCL_PACKAGE_VERSION="2.8.4-1"
+export NV_LIBNCCL_PACKAGE="${NV_LIBNCCL_PACKAGE_NAME}=${NV_LIBNCCL_PACKAGE_VERSION}+cuda11.2"
 
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends cuda-libraries-$CUDA_PKG_VERSION \
-                                           cuda-npp-$CUDA_PKG_VERSION \
-					   cuda-nvtx-$CUDA_PKG_VERSION \
-					   libcublas10=10.2.2.89-1 \
-					   libnccl2=$NCCL_VERSION-1+cuda10.2 && \
-sudo apt-mark hold libnccl2 && \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+	                                        cuda-libraries-11-2=${NV_CUDA_LIB_VERSION} \
+                                                ${NV_LIBNPP_PACKAGE} \
+                                                cuda-nvtx-11-2=${NV_NVTX_VERSION} \
+                                                libcusparse-11-2=${NV_LIBCUSPARSE_VERSION} \
+                                                ${NV_LIBCUBLAS_PACKAGE} \
+                                                ${NV_LIBNCCL_PACKAGE} && \
 sudo rm -rf /var/lib/apt/lists/*
 
-## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/10.2/ubuntu18.04-x86_64/runtime/cudnn7/Dockerfile
-export CUDNN_VERSION="7.6.5.32"
+# Keep apt from auto upgrading the cublas and nccl packages. See https://gitlab.com/nvidia/container-images/cuda/-/issues/88
+sudo apt-mark hold ${NV_LIBCUBLAS_PACKAGE_NAME} ${NV_LIBNCCL_PACKAGE_NAME}
 
-# LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
+
+## https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.2.2/ubuntu1804/runtime/cudnn8/Dockerfile
+export NV_CUDNN_VERSION="8.1.1.33"
+export NV_CUDNN_PACKAGE="libcudnn8=$NV_CUDNN_VERSION-1+cuda11.2"
+export NV_CUDNN_PACKAGE_NAME="libcudnn8"
 
 sudo apt-get update && \
-sudo apt-get install -y --no-install-recommends libcudnn7=$CUDNN_VERSION-1+cuda10.2 && \
-sudo apt-mark hold libcudnn7 && \
+sudo apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends ${NV_CUDNN_PACKAGE} && \
+sudo apt-mark hold ${NV_CUDNN_PACKAGE_NAME} && \
 sudo rm -rf /var/lib/apt/lists/*
+
 
