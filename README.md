@@ -13,8 +13,8 @@ Contact David Wood (dawood@us.ibm.com) for questions/comments/contributions.
    1. mvn -DskipTests=true clean install
    1. cd SOMEWHERE; unzip .../ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-0.0.1-SNAPSHOT-cpu.zip
 1. GPU builds
-   1. mvn -DskipTests=true -P cuda10.2 clean install
-   1. cd SOMEWHERE; unzip .../ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-0.0.1-SNAPSHOT-cuda10.2.zip   
+   1. mvn -DskipTests=true -P cuda11.2 clean install
+   1. cd SOMEWHERE; unzip .../ai-signal-processing/aisp-core/aisp-core-main/target/aisp-core-main-0.0.1-SNAPSHOT-cuda11.2.zip   
 1. See the wiki to enable and use the CLI
 
 To build the CLI zip on Ubuntu:
