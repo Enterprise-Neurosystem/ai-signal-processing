@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>org.eng.aisp</groupId>
-        <artifactId>aisp.root</artifactId>
+        <artifactId>aisp-root</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
   </parent>
 
   <packaging>pom</packaging>
 
-  <artifactId>aisp.core</artifactId>
+  <artifactId>aisp-core</artifactId>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,6 +17,8 @@
   
   <modules>
  	<module>aisp-core-main</module> 
+ 	<module>aisp-core-main-cpu</module> 
+ 	<module>aisp-core-main-gpu</module> 
  	<module>aisp-core-samples</module> 
   </modules>
   
@@ -44,47 +46,8 @@
     		</execution>
     	</executions>
     </plugin> 
-<!--
-    <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.1</version>
-        <executions>
-          <execution>
-            <id>bundle-sources</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-              <goal>test-jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
--->
-        <!-- Added for aggregated javadoc, see https://maven.apache.org/plugins/maven-javadoc-plugin/examples/aggregate-dependency-sources.html --> 
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-source-plugin</artifactId>
-      <version>3.0.0</version>
-      <executions>
-        <execution>
-          <id>attach-sources</id>
-          <goals>
-            <goal>jar</goal>
-          </goals>
-        </execution>
-          <execution>
-            <id>bundle-sources</id>
-            <phase>package</phase>
-            <goals>
-              <!-- produce source artifact for main project sources -->
-              <goal>jar-no-fork</goal>
-              
-              <!-- produce source artifact for project test sources -->
-              <goal>test-jar-no-fork</goal>
-            </goals>
-          </execution>
-      </executions>
-    </plugin>
+
+
     <plugin>
     	<groupId>org.apache.maven.plugins</groupId>
   		<artifactId>maven-javadoc-plugin</artifactId>
