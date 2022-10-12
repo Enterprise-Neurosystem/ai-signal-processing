@@ -3,7 +3,7 @@
   
   <parent>
     <groupId>org.eng.aisp</groupId>
-    <artifactId>aisp.core</artifactId>
+    <artifactId>aisp-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -33,7 +33,7 @@
   <dependencies>
   	<dependency>
   	    <groupId>org.eng.aisp</groupId>
-  	    <artifactId>aisp-core-main</artifactId>
+  	    <artifactId>aisp-core-main-cpu</artifactId>
   	    <version>0.0.1-SNAPSHOT</version>
   	</dependency>
        <dependency>
