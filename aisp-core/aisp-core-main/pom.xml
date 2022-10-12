@@ -72,18 +72,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<!--  for KMeans -->
-			<groupId>org.deeplearning4j</groupId>
-			<artifactId>nearestneighbor-core</artifactId>
-			<version>1.0.0-beta7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native</artifactId>
-			<version>1.0.0-M1.1</version>
-			<classifier>linux-arm64</classifier>
-		</dependency>
 
 		<dependency>
 			<groupId>joda-time</groupId>
