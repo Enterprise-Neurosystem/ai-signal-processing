@@ -67,6 +67,7 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 //		}
 
 		ReferencedSoundSpec lastRSS = null, nextFirstRSS = null;;
+		int runLength = 0;
 		for (ReferencedSoundSpec rss : rssList) {
 //			AISPLogger.logger.info("rss=" + rss);
 			if (lastRSS != null) {
@@ -76,14 +77,17 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 
 					// Starting a new merged segment.
 					nextFirstRSS = rss;
+					runLength = 0;
 				}
 			} else  {	// First rss in the loop
 				nextFirstRSS = rss;
+				runLength = 0;
 			}
 			lastRSS = rss;
+			runLength += 1;
 		}
 		// The last mergable segment still needs to be merged/created.
-		if (nextFirstRSS != lastRSS) {
+		if (nextFirstRSS != lastRSS || runLength == 1) {
 			ReferencedSoundSpec mergedRSS = createContinuousReference(nextFirstRSS, lastRSS); 
 			mergedList.add(mergedRSS);
 		}
