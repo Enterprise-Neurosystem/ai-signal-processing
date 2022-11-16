@@ -100,8 +100,10 @@ public class LabeledDataWindow<WINDATA> extends TaggedEntity implements ILabeled
 	}
 
 	public void setLabels(Properties labels) {
-		this.labels.clear();
-		this.labels.putAll(labels);
+		if (labels != this.labels) { 
+			this.labels.clear();
+			this.labels.putAll(labels);
+		}
 	}
 
 	/* (non-Javadoc)
