@@ -468,7 +468,18 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 		return canonicalTable;
 	}
 
-
+	/**
+	 * Remove tags that were added in {@link RecordingDereferencer#loadReference(IReferencedSoundSpec)}.
+	 * @param tags
+	 * @return new tags.
+	 */
+	private static Properties removeInternallyAddedTags(Properties tags) {
+		Properties newTags = new Properties();
+		newTags.putAll(tags);;
+		newTags.remove(FILENAME_TAG);
+		newTags.remove(FILE_REFERENCE_TAG);
+		return newTags;
+	}
 	
 	/**
 	 * Write the given sound ref spec to the given writer. 
@@ -481,7 +492,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 	private static void writeRecord(Writer writer, IReferencedSoundSpec record, boolean absoluteSoundReferences, boolean forLinux) throws IOException {
 //		String ref = record.getReference();
 		String labels = formatNameValuePairs(record.getLabels(), LABEL_SEPARATOR);
-		String tags = formatNameValuePairs(record.getTags(), LABEL_SEPARATOR);
+		String tags = formatNameValuePairs(removeInternallyAddedTags(record.getTags()), LABEL_SEPARATOR);
 		IReferencedSoundSpec spec = record;
 //		try {
 //			spec = parseReference(ref);
