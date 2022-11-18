@@ -86,6 +86,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 
 	/** Add when reading a file ot the tags for the resulting SoundRecording */
 	public final static String FILENAME_TAG = "file";
+	public final static String FILE_REFERENCE_TAG = "reference";
 
 	/** Label used to capture the start time of a SoundClip when be stored with an entry in a metadata file */
 	public final static String DEFAULT_METADATA_FILE_NAME = "metadata.csv";
@@ -257,7 +258,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 	public Iterable<String> getFiles() {
 		Set<String> files = new HashSet<String>();
 		for (IReferencedSoundSpec spec : this) 
-			files.add(spec.getReference());	// The spec contains the pure file name (no segment info).
+			files.add(spec.getDataSource());	// The spec contains the pure file name (no segment info).
 		return files;
 	}
 	
@@ -378,11 +379,11 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 					throw new IOException("Metadata file contains duplicate reference which is not allowed. " + reference);
 				IReferencedSoundSpec spec;
 				try {
-					spec = parseReference(reference);
+					spec = ReferencedSoundSpec.parseReference(reference);
 				} catch (ParseException e) {
 					throw new IOException("Could not parse reference: " + reference);
 				} 
-				String file = spec.getReference();
+				String file = spec.getDataSource();
 				Properties labels = null, tags = null;
 				String cell = (String)row.get(NEW_LABELS_COLUMN_INDEX);
 				if (cell != null)
@@ -487,7 +488,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 //		} catch (ParseException e) {
 //			throw new IOException("Could not parse reference: " + ref, e);
 //		}
-		String fileName = spec.getReference();	// This is now the raw file reference w/o start/end segment 
+		String fileName = spec.getDataSource();	// This is now the raw file reference w/o start/end segment 
 		if (absoluteSoundReferences)
 			fileName = new File(fileName).getAbsolutePath();
 
@@ -498,7 +499,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 //			fileName = fileName.replaceAll("\\\\", "/");
 //		}
 		StringBuilder sb = new StringBuilder();
-		String referenceKey = formatReference(spec, forLinux);
+		String referenceKey = ReferencedSoundSpec.formatReference(spec, forLinux);
 		sb.append(referenceKey);
 
 		sb.append(COLUMN_SEPARATOR);	// no extra spaces
@@ -934,7 +935,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 
 
 	/**
-	 * This is the class that turns a reference from an {@link IReferencedSoundSpec#getReference()} into a SoundRecording.
+	 * This is the class that turns a reference from an {@link IReferencedSoundSpec#getDataSource()} into a SoundRecording.
 	 * @author DavidWood
 	 */
 	private static class RecordingDereferencer implements IDereferencer<IReferencedSoundSpec, SoundRecording> {
@@ -959,7 +960,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 		 */
 		@Override
 		public SoundRecording loadReference(IReferencedSoundSpec reference) throws IOException {
-			String fileName = reference.getReference();
+			String fileName = reference.getDataSource();
 			
 			// Read the file, try and find it locally or relative to the MetaData file.
 			fileName = MetaData.getExistingFile(this.metaData.absoluteParent, fileName, true);
@@ -986,6 +987,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 
 			// Add the filename tag.
 			sr.addTag(FILENAME_TAG, fileName); 
+			sr.addTag(FILE_REFERENCE_TAG, reference.getReferenceText());
 
 			// Done
 			return sr;
@@ -1038,7 +1040,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 			IReferencedSoundSpec r = this.dereference(ref);
 			if (r == null)
 				continue;	// Should not happen, but just in case.
-			String existingFile = MetaData.getExistingFile(this.absoluteParent, r.getReference(), false);
+			String existingFile = MetaData.getExistingFile(this.absoluteParent, r.getDataSource(), false);
 			if (existingFile == null)	// only true if requireAllFiles == false
 				continue;
 			// Copy the record except for the reference.
@@ -1118,7 +1120,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 		Map<String, List<LabeledSegmentSpec>> segmentations = new HashMap<String,List<LabeledSegmentSpec>>();
 		List<String> fileNames = new ArrayList<String>();
 		for (IReferencedSoundSpec spec : this) {
-			String filename = spec.getReference();
+			String filename = spec.getDataSource();
 
 			// Check if file exists first
 			File filenameFile = new File(this.getReferenceableFile(filename));
@@ -1158,7 +1160,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 			return this;
 		for (String ref : dataSet.getReferences()) {
 			IReferencedSoundSpec spec = dataSet.dereference(ref);
-			String file = spec.getReference();
+			String file = spec.getDataSource();
 			String absFile = dataSet.getReferenceableFile(file);
 			spec = new ReferencedSoundSpec(spec, absFile);
 			this.add(ref, spec);
@@ -1207,7 +1209,7 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 	 */
 	@Override
 	public String add(IReferencedSoundSpec dataRef) {
-		String ref = formatReference(dataRef, true); 
+		String ref = ReferencedSoundSpec.formatReference(dataRef, true); 
 		super.add(ref, dataRef);
 		return ref;		
 	}
@@ -1265,13 +1267,6 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 	}
 
 
-	private final static String SEGMENT_START = "[";
-	private final static String SEGMENT_END= "]";
-	private final static String SEGMENT_START_END_SEPARATOR= "-";
-//	private final static String REFERENCE_FORMAT = "%s" + SEGMENT_START + "%d" + SEGMENT_START_STOP_SEPARATOR + "%d" + SEGMENT_END;
-	private final static String REFERENCE_FORMAT = "{0}" + SEGMENT_START + "{1,number,#}" + SEGMENT_START_END_SEPARATOR + "{2,number,#}" + SEGMENT_END;
-	private final static MessageFormat ReferenceMessageFormat = new MessageFormat(REFERENCE_FORMAT);
-
 	/**
 	 * Get the filename portion of the reference.
 	 * @param reference
@@ -1279,62 +1274,10 @@ public class MetaData extends MemorySoundReferenceDataSet implements ISoundRefer
 	 * @throws ParseException 
 	 */
 	private static String parseFileNameFromReference(String reference) throws ParseException {
-		return parseReference(reference).getReference();
+		return ReferencedSoundSpec.parseReference(reference).getDataSource();
 	}
 	
-	/**
-	 * Parse the filename and start/end times from the reference.
-	 * @param reference
-	 * @return never null. an instance with only the reference and start/end times sets.  The contained 
-	 * reference does NOT include the start/end time.  If the start/end are not present in
-	 * the reference then the returned instance has 0 for both start/end time.
-	 * @throws ParseException 
-	 */
-	private static IReferencedSoundSpec parseReference(String reference) throws ParseException {
-		int index = reference.indexOf(SEGMENT_START);
-		int startMsec = 0, endMsec = 0;
-		if (index >= 0)  {
-			Object[] fields = ReferenceMessageFormat.parse(reference);
-			if (fields == null || fields.length != 3)
-				throw new ParseException("Reference does not contain expected number of arguments (3): " + reference,0);
-			reference = fields[0].toString();
-			if (!(fields[1] instanceof Number))
-				throw new ParseException("Reference segment start is not a number: " + reference,0);
-			if (!(fields[2] instanceof Number))
-				throw new ParseException("Reference segment end is not a number: " + reference,0);
-			startMsec = ((Number)fields[1]).intValue(); 
-			endMsec = ((Number)fields[2]).intValue(); 
-		}
-		return new ReferencedSoundSpec(reference, startMsec, endMsec, null,null);
-	}
 
-	/**
-	 * Use the filename portion of the contained reference together with the spec's start/stop time to get a reference string.
-	 * @param spec	 spec reference contains the raw file name.
-	 * @param forLinux if true then remove any windows disk specification from the filename.
-	 * @return
-	 * @throws ParseException 
-	 */
-	private static String formatReference(IReferencedSoundSpec spec, boolean forLinux) { 
-		// Parse filename out of the contained reference.
-		String fileName = spec.getReference();
-
-		if (forLinux) {
-			int colonIndex = fileName.indexOf(':');
-			if (colonIndex == 1) 
-				fileName = fileName.substring(colonIndex+1);
-			fileName = fileName.replace("\\", "/");
-		}
-		
-		// If no segment spec, then just return the raw file. 
-		int endMsec = spec.getEndMsec();
-		if (spec.getEndMsec() <= 0)
-			return fileName; 
-		int startMsec = spec.getStartMsec();
-		String reference = MessageFormat.format(REFERENCE_FORMAT, fileName, new Integer(startMsec), new Integer(endMsec));
-		return reference;
-	}
-	
 	/**
 	 * Get the set of augmentation tags to store with the given sound recording (in case they tags aren't stored when the recording is stored).
 	 * @param sr

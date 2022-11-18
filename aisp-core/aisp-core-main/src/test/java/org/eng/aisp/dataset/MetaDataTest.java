@@ -84,7 +84,7 @@ public class MetaDataTest {
 			// Make sure the labels and file name and sensor values where copied correctly.
 			Set<String> splitLabelValues = new HashSet<String>();	// track all labels values in the sub 
 			for (IReferencedSoundSpec r : sub) {
-				String fileName = r.getReference();
+				String fileName = r.getDataSource();
 //				System.out.println("sub=" + i + ", labels=" + p);
 				int lastSep = fileName.lastIndexOf("/");
 				String index = fileName; 
@@ -221,7 +221,7 @@ public class MetaDataTest {
 		int i = 0;
 		for (IReferencedSoundSpec r : readMD) {
 			String index = String.valueOf(i);
-			Assert.assertTrue(r.getReference().endsWith(index));
+			Assert.assertTrue(r.getDataSource().endsWith(index));
 			Properties labels = r.getLabels(); 
 			Properties tags = r.getTags(); 
 			Assert.assertTrue(labels.size() == 1);
@@ -348,8 +348,8 @@ chiller-1.wav[0-3000],segment=2,
 		Properties tags = new Properties();
 		labels.setProperty("nameIndex", String.valueOf(nameIndex)); 
 		tags.setProperty("nameIndexTag", String.valueOf(nameIndex)); 
-		String reference = soundNames.get(nameIndex);
-		return new ReferencedSoundSpec(reference, startMsec, endMsec, labels, tags);
+		String dataSource = soundNames.get(nameIndex);
+		return new ReferencedSoundSpec(dataSource, startMsec, endMsec, labels, tags);
 	}
 
 	private void validateSound(List<SoundRecording> srList, int index, String fileName, int durationMsec, String labelName, String expectedLabelValue) {

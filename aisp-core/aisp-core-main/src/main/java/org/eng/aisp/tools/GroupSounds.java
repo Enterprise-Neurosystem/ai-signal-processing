@@ -142,9 +142,9 @@ public class GroupSounds {
 		for (IReferencedSoundSpec r : metadata) {
 			String lvalue = r.getLabels().getProperty(labelName);
 			if (lvalue != null && lvalue.equals(labelValue)) {
-				String file = metadata.getReferenceableFile(r.getReference());
+				String file = metadata.getReferenceableFile(r.getDataSource());
 				if (!files.contains(file))	// The metadata records can refer to the same file, so be sure to avoid dups.
-					files.add(metadata.getReferenceableFile(r.getReference()));
+					files.add(metadata.getReferenceableFile(r.getDataSource()));
 			}
 		}
 		return files;

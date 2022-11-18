@@ -43,7 +43,7 @@ public class ComposedSoundDataSetTest {
 
 		@Override
 		public SoundRecording loadReference(IReferencedSoundSpec reference) throws IOException {
-			String soundRef = reference.getReference();
+			String soundRef = reference.getDataSource();
 			SoundRecording sr = sounds.get(soundRef);
 			if (sr == null)	
 				throw new IOException("No sound for " + reference);
@@ -61,7 +61,7 @@ public class ComposedSoundDataSetTest {
 		String srcLabelName = "srcLabel";
 		String srcTagName = "srcTag";
 		int[] levels = new int[] { -1, 1};
-		List<String> srReferences= new ArrayList<String>();
+//		List<String> srReferences= new ArrayList<String>();
 		List<String> specReferences = new ArrayList<String>();
 		Map<String, SoundRecording> sounds = new HashMap<String,SoundRecording>(); 
 		List<SoundRecording> expectedSounds = new ArrayList<SoundRecording>();
@@ -79,9 +79,9 @@ public class ComposedSoundDataSetTest {
 			SoundRecording sr = new SoundRecording(clip, srcLabels, srcTags);
 
 			// Create the reference for this sound and store it in a map under that reference.
-			String srRef = String.valueOf(i);
-			srReferences.add(srRef);
-			sounds.put(srRef, sr);
+			String dataSource = String.valueOf(i);
+//			srReferences.add(reference);
+			sounds.put(dataSource, sr);
 
 			// Create a segment record for each segment and record the expected matching sound recording for each segment..
 			int startMsec = 0;
@@ -92,7 +92,7 @@ public class ComposedSoundDataSetTest {
 				specLabels.setProperty(specLabelName, "label-segment" + k);
 				Properties specTags = new Properties();
 				specTags.setProperty(specTagName, "tag-StartMsec is " + startMsec);
-				ReferencedSoundSpec spec = new ReferencedSoundSpec(srRef, startMsec, endMsec, specLabels, specTags);
+				ReferencedSoundSpec spec = new ReferencedSoundSpec(dataSource, startMsec, endMsec, specLabels, specTags);
 				String specRef = md.add(spec);
 				
 				// Put this spec in our spec set.

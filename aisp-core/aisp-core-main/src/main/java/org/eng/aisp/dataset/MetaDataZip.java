@@ -254,7 +254,7 @@ public class MetaDataZip extends FileZipper { // implements Closeable {
 //				sr.removeTag(MetaData.FILENAME_TAG);
 				sr = adjustStartTime(sr);
 				IReferencedSoundSpec spec = metaData.loadReference(reference);
-				filename = spec.getReference();	// The actual file name
+				filename = spec.getDataSource();	// The actual file name
 			} catch (IOException e) {
 				return nsList;
 			}

@@ -182,6 +182,7 @@ public class FileSoundStorage extends AbstractReadOnlyStorage<SoundRecording> im
 		Properties tags = new Properties(); 
 		tags.putAll(sr.getTags());
 		tags.remove(MetaData.FILENAME_TAG);	// Don't send this back to the user.
+		tags.remove(MetaData.FILE_REFERENCE_TAG);	// Don't send this back to the user.
 
 //		if (sessionID != null)	// Should never be the case, but just in case. 
 //			tags.put(RECORDING_SESSION_ID_KEY, sessionID);

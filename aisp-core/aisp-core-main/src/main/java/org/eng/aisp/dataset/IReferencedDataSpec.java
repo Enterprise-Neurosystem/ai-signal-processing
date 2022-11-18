@@ -36,16 +36,25 @@ public interface IReferencedDataSpec<DATA extends ILabeledDataWindow<?>> {
 	 * The reference that is used to load the associated data.
 	 * @return never null. 
 	 */
-	String getReference();
-
+	String getDataSource();
+	
+	
 	/**
-	 * The tags to be assigned to the dereferenced item when {@link #getReference()} is called.
+	 * Gets a string the represents this spec.  Simple implementations might use the
+	 * value in {@link #getDataSource()}, but others might attach other specs such as segment start and stop.
+	 * @return
+	 */
+	String getReferenceText();
+	
+	
+	/**
+	 * The tags to be assigned to the dereferenced item when {@link #apply()} is called.
 	 * @return never null. 
 	 */
 	Properties getLabels();
 
 	/**
-	 * The tags to be assigned to the dereferenced item when {@link #getReference()} is called.
+	 * The tags to be assigned to the dereferenced item when {@link #apply()} is called.
 	 * @return never null. 
 	 */
 	Properties getTags();

@@ -73,9 +73,9 @@ public class ComposedStoredSoundDataSet extends ComposedSoundDataSet {
 		public SoundRecording loadReference(IReferencedSoundSpec reference) throws IOException {
 			SoundRecording sr;
 			try {
-				sr = storage.findItem(reference.getReference());
+				sr = storage.findItem(reference.getDataSource());
 			} catch (StorageException e) {
-				throw new IOException("Could not load sound using reference " + reference.getReference(), e);
+				throw new IOException("Could not load sound using reference " + reference.getDataSource(), e);
 			}
 			try {
 				sr = reference.apply(sr);

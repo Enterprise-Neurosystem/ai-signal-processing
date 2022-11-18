@@ -61,7 +61,7 @@ public class ItemReferenceIterator<ITEM> extends AbstractDefaultIterator<ITEM> i
 
 	/**
 	 * Get the item at the given reference
-	 * @param reference
+	 * @param dataSource
 	 * @return never null
 	 * @throws NoSuchElementException if refIterable could not dereference all items. 
 	 */

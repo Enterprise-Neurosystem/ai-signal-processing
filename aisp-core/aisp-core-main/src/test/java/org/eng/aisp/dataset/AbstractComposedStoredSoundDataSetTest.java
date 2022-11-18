@@ -90,7 +90,7 @@ public abstract class AbstractComposedStoredSoundDataSetTest {
 		List<String> refIDs =  new ArrayList<String>(); 
 
 		for (IReferencedSoundSpec r : md) {
-			SoundRecording sound = md.readSound(r.getReference());
+			SoundRecording sound = md.readSound(r.getDataSource());
 			String id = soundStorage.add(sound);
 			Assert.assertTrue(id != null);
 			ReferencedSoundSpec sr = new ReferencedSoundSpec(r, id);
