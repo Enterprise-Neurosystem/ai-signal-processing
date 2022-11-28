@@ -43,12 +43,18 @@ public class Label {
 			  "Classifies sounds using a model to produce a metadata-formatted labeling of the\n"
 			+ "sounds on stdout.  While the -clipLen option is not strictly required, it is \n"
 			+ "typically used to classify sub-segments of the input sound(s).  Segments from\n"
-			+ "the same file that are adjacent in time and have the same label name as \n" 
+			+ "the same file that are adjacent in time and have the same label value(s) as \n" 
 			+ "produced by the model will be merged.\n"
-			+ GetTrainedModelOptions.OptionsHelp
+			+ "Usage: ... [options] [list of wav files] \n"
+			+ "Options:\n"
 			+ GetModifiedSoundOptions.ClipLenOnlyOptionsHelp
+			+ "  -label <name>: indicates that only the given label should be considered when\n"
+			+ "      comparing adjacent segments for equal label value(s).  May be useful when\n"
+			+ "      the model produces more than one label. Defaults to compare all labels.\n" 
+			+ GetTrainedModelOptions.OptionsHelp
 			+ "Label examples: \n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 number1.wav number2.wav\n"
+			+ "  ... -file myclassifier.cfr -label mylabel -clipLen 1000 number1.wav number2.wav\n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 -pad duplicate number1.wav\n"
 			+ "  ... -file myclassifier.cfr -clipLen 1000 -pad duplicate -sounds metadata.csv\n"
 			;
@@ -111,16 +117,17 @@ public class Label {
 		if (!soundOptions.parseOptions(cmdargs)) 
 			return false;
 		Iterable<SoundRecording> sounds = soundOptions.getSounds();
+		String labelName = soundOptions.getLabel();
 		System.setOut(stdout);	
 		
-		labelSounds(classifier, sounds);
+		labelSounds(classifier, sounds, labelName);
 
 		return true;
 
 	}
 
 
-	private void labelSounds(IFixedClassifier<double[]> classifier, Iterable<SoundRecording> sounds) throws AISPException, IOException {
+	private void labelSounds(IFixedClassifier<double[]> classifier, Iterable<SoundRecording> sounds, String labelName) throws AISPException, IOException {
 
 		// See if there are duplicate filenames so that we know whether or not to include indices and start/stop times.
 		Map<String, List<ReferencedSoundSpec>> labelings = new HashMap<>();
@@ -152,7 +159,7 @@ public class Label {
 		MetaData md = new MetaData();
 		for (String fn : fileNames) {
 			List<ReferencedSoundSpec> rssList = labelings.get(fn);
-			rssList = ReferencedSoundSpec.mergeLabelValues(rssList);
+			rssList = ReferencedSoundSpec.mergeLabelValues(rssList, labelName);
 			for (ReferencedSoundSpec rss : rssList) 
 				md.add(rss);
 		}

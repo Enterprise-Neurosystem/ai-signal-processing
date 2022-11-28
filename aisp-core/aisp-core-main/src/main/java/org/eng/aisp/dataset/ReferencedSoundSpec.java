@@ -46,9 +46,10 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 	 * Merge adjacent references that have the same label values and that are adjacent in time.
 	 * Currently it is assumed that references having the same reference string will be sequential in the given iterable.
 	 * @param rssList
+	 * @param labelName if not null, then only compare the values of the biven label for equivalence when considering segments as mergeable.
 	 * @return
 	 */
-	public static List<ReferencedSoundSpec> mergeLabelValues(Iterable<ReferencedSoundSpec> rssList) {
+	public static List<ReferencedSoundSpec> mergeLabelValues(Iterable<ReferencedSoundSpec> rssList, String labelName) {
 		List<ReferencedSoundSpec> mergedList = new ArrayList<>();
 
 //		// First filter out references that don't have the given label.  This makes the subsequent traversal a bit easier.
@@ -73,7 +74,7 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 		for (ReferencedSoundSpec rss : rssList) {
 //			AISPLogger.logger.info("rss=" + rss);
 			if (lastRSS != null) {
-				if (nextFirstRSS != null  && !isMergeable(lastRSS, rss)) {
+				if (nextFirstRSS != null  && !isMergeable(lastRSS, rss, labelName)) {
 					ReferencedSoundSpec mergedRSS = createContinuousReference(nextFirstRSS, lastRSS); 
 					mergedList.add(mergedRSS);
 
@@ -124,17 +125,28 @@ public class ReferencedSoundSpec extends LabeledSegmentSpec implements IReferenc
 	 * Determine if the references and labels match and if the 2nd is adjacent in time following the 1st.
 	 * @param rss1
 	 * @param rss2
+	 * @param labelName if provided then only compare the given label name values for equivalence.
 	 * @return
 	 */
-	private static boolean isMergeable(ReferencedSoundSpec rss1, ReferencedSoundSpec rss2) {
+	private static boolean isMergeable(ReferencedSoundSpec rss1, ReferencedSoundSpec rss2, String labelName) {
 		String src1 = rss1.getDataSource();
 		String src2 = rss2.getDataSource();
 		if (!src1.equals(src2))
 			return false;
 		Properties l1 = rss1.getLabels();	
 		Properties l2 = rss2.getLabels();
-		if (!l1.equals(l2))	// Compares possibly multiple labels.
-			return false;
+		if (labelName == null) {
+			if (!l1.equals(l2))	// Compares all labels.
+				return false;
+		} else {				// Compare only the requested label, but require the label
+			String l1val = l1.getProperty(labelName);
+			String l2val = l2.getProperty(labelName);
+			if (l1val == null || l2val == null) {
+				return false;
+			} else if (!l1val.equals(l2val)) {
+				return false;
+			}
+		}
 		int end1   = rss1.getEndMsec();
 		int start2 = rss2.getStartMsec();
 		if (end1 != start2)
