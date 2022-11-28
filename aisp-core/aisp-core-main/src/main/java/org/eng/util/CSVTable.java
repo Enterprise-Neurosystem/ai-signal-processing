@@ -85,16 +85,16 @@ public class CSVTable implements Iterable<CaseInsensitiveMap> {
 		this(Arrays.asList(columnNames), null);
 	}
 	
-	public CSVTable(List<String> columnNames) {
+	public CSVTable(Iterable<String> columnNames) {
 		this(columnNames, null);
 	}
 
-	public CSVTable(List<String> columnNames, List<Map<String,String>> rows) { 
+	public CSVTable(Iterable<String> columnNames, Iterable<Map<String,String>> rows) { 
 		this(columnNames, rows,null);
 
 	}
 
-	public CSVTable(List<String> columnNames, List<Map<String,String>> rows, String valueWrapper) { 
+	public CSVTable(Iterable<String> columnNames, Iterable<Map<String,String>> rows, String valueWrapper) { 
 		if (columnNames != null) {
 			for (String s: columnNames)
 				this.columnNames.add(s);
