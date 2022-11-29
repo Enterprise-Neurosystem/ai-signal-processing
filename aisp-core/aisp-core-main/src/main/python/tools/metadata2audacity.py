@@ -46,12 +46,15 @@ if __name__ == '__main__':
         ,formatter_class=RawTextHelpFormatter)
     argp.add_argument('metadata_files', help='Specifies name of 1 or more metadata files to be converted to 1 or more Audacity files', default=None, 
                       type=str, nargs='+')
+    argp.add_argument('-label', help='Specifies name of the label to convert into the Audacity files.  Only useful when the input has more than 1 label.', default=None, 
+                      type=str, required=False)
     # argp.add_argument('-wav', help='Specifies name of the wav file to which the labels apply', default=None, required=True, type=str)
     # argp.add_argument('-audacity', help='Specifies the name of the Audacity labels file. Default is labels.txt.', default="labels.txt", type=str)
     # argp.add_argument('-label', help='The label name to use in the output. Default is state.', default='state', type=str)
     # argp.add_argument('-gap-label-value', help='The label value to apply to the gaps in the labels specified in the Audacity labels file. Default is None and will not be applied.', default=None, type=str)
     args = argp.parse_args()
     metadata_files = args.metadata_files
+    selected_label = args.label
     all_lines= []
     for file in metadata_files: 
         with open(file) as in_file: 
@@ -61,14 +64,27 @@ if __name__ == '__main__':
     
     segmentations = {}  # Map of file to list of segments.
     for line in all_lines: 
+        line = line.strip()
+        if len(line) == 0:
+            continue
         fields=line.split(',')
         file = fields[0] 
         label=fields[1]
         if ';' in label:
             label = label.split(';')    # Take only the first label, for now.
-            label = label[0]            
-        label = label.split('=')[1] #  label value
-        segment = [ label ]                # The whole file
+            if selected_label is None: 
+                label = label[0]            
+            else:
+                target_label = None
+                for l in label:
+                    if selected_label in l:
+                        target_label = l
+                        break
+                label = target_label
+        if label is None:    # bad label name?
+            continue        # skip this line
+        label_value = label.split('=')[1] #  label value
+        segment = [ label_value ]                # The whole file
         if '[' in file:
             sp = file.split('[')
             file = sp[0]
@@ -77,9 +93,9 @@ if __name__ == '__main__':
             numbers = numbers.split('-')
             start = int(numbers[0]) / 1000.0   
             end = int(numbers[1]) / 1000.0
-            segment = [label, start, end]
+            segment = [label_value, start, end]
         else:
-            print("No segment information for file " + file + ". Skipping.")
+            print("No segment information for file " + file + ". Skipping.", file=sys.stderr)
         segments = segmentations.get(file)
         if segments is None:
             segments = [ segment ] 
@@ -87,6 +103,11 @@ if __name__ == '__main__':
             segments.append(segment)
         segmentations[file] = segments
         
+    if len(segmentations) == 0:
+        if selected_label is None:
+            print("No lines found.", file=sys.stderr)
+        else:
+            print("No lines found. Did you use the correct label name?", file=sys.stderr)
     for file, segments in segmentations.items():
             basename = os.path.basename(file)
             labels_file = basename.replace(".wav",".txt")
