@@ -37,7 +37,7 @@ public class ToolUtils {
 	public static boolean hasUnusedArguments(CommandArgs cmdargs) {
 		String[] args = cmdargs.getArgs();
 		if (args.length != 0) {
-			System.err.print("Unknown/unrecognized options: ");
+			System.err.print("Unknown/unrecognized/duplicate option(s): ");
 			for (int i=0 ; i<args.length ; i++) {
 				if (i != 0)
 					System.err.print(", ");
