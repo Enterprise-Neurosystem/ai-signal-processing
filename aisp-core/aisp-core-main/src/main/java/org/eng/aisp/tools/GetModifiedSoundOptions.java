@@ -22,6 +22,7 @@ import org.eng.aisp.IDataWindow.PadType;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.util.BalancedLabeledWindowShuffleIterable;
 import org.eng.aisp.util.FixedDurationSoundRecordingShuffleIterable;
+import org.eng.util.CachingShuffleIterable;
 import org.eng.util.CommandArgs;
 import org.eng.util.IShuffleIterable;
 import org.eng.util.IterableIterable;
@@ -258,10 +259,20 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 //				System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 //			}
 		}
-		this.clippedUnbalancedSounds = sounds;
-		if (balancedLabels) 
+		this.clippedUnbalancedSounds = new CachingShuffleIterable<SoundRecording>(sounds);
+		if (balancedLabels)  {
 			sounds = getBalancedSounds(sounds, trainingLabel, balancedCount, useUpSampling);
-		return sounds;
+			sounds = new CachingShuffleIterable<SoundRecording>(sounds);
+		} else {
+			sounds =  clippedUnbalancedSounds;
+		}
+
+//		this.clippedUnbalancedSounds = sounds; 
+//		if (balancedLabels)  {
+//			sounds = getBalancedSounds(sounds, trainingLabel, balancedCount, useUpSampling);
+//		}
+
+		return sounds; 
 	}
 
 

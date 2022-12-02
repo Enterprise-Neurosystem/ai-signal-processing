@@ -29,6 +29,8 @@ import org.eng.aisp.util.BalancedLabeledWindowIterable;
 import org.eng.aisp.util.BalancedLabeledWindowShuffleIterable;
 import org.eng.aisp.util.LabeledWindowIterable;
 import org.eng.aisp.util.Partitioner;
+import org.eng.util.CachingIterable;
+import org.eng.util.CachingShuffleIterable;
 import org.eng.util.DelegatingShuffleIterable;
 import org.eng.util.IShuffleIterable;
 import org.eng.util.IterableIterable;
@@ -144,6 +146,12 @@ public class KFoldModelEvaluator {
 				AISPLogger.logger.info("Not shuffling any data");
 		}
 		
+		// Cache the input data so we don't need to keep reloading across multiple references made in each fold evaluation.
+		if ((dataIterable instanceof IShuffleIterable) && !(dataIterable instanceof CachingShuffleIterable))
+			dataIterable = new CachingShuffleIterable<>((IShuffleIterable<LDW>)dataIterable);
+		else if (!(dataIterable instanceof CachingIterable))
+			dataIterable = new CachingIterable<>(dataIterable);
+
 //		AISPLogger.logger.info("Initial data:\n" + TrainingSetInfo.getInfo(data).prettyFormat());
 
 		// Partition the data evenly spreading equal numbers of label values across each partition.  Do NOT balance data - we only optionally balance the training data, below.
