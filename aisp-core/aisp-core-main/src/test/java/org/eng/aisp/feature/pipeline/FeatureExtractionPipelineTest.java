@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eng.aisp.AISPException;
+import org.eng.aisp.AISPLogger;
 import org.eng.aisp.IDataWindow;
 import org.eng.aisp.SoundRecording;
 import org.eng.aisp.SoundTestUtils;
@@ -52,6 +53,10 @@ public class FeatureExtractionPipelineTest {
 	protected FeatureExtractionPipeline<double[],double[]> getTestPipeline(List<IFeatureGramDescriptor<double[],double[]>> fgList) {
 		return new FeatureExtractionPipeline<double[],double[]>(fgList);
 	}
+	
+	protected boolean isFeatureExtractionCached() {
+		return false;
+	}
 
 	/**
 	 * Dummy feature extract that just counts the number of calls.
@@ -69,7 +74,8 @@ public class FeatureExtractionPipelineTest {
 	
 		@Override
 		public synchronized IFeature<double[]> apply(IDataWindow<double[]> t) {
-			callCount.incrementAndGet();
+			int c = callCount.incrementAndGet();
+//			AISPLogger.logger.info("extractor id=" + id + ", callCount=" + c); 
 			return new DoubleFeature(t.getStartTimeMsec(), t.getEndTimeMsec(), t.getData());
 		}
 	
@@ -112,7 +118,8 @@ public class FeatureExtractionPipelineTest {
 	
 		@Override
 		public synchronized IFeatureGram<double[]> apply(IFeatureGram<double[]> features) {
-			callCount.incrementAndGet();
+			int c = callCount.incrementAndGet();
+//			AISPLogger.logger.info("processor id=" + id + ", callCount=" + c); 
 			return features;
 		}
 	
@@ -210,6 +217,7 @@ public class FeatureExtractionPipelineTest {
 		int count = 3;
 		// These are set to avoid round off error, which for 1000 and 100 gives only 9 subwindows.
 		int durationMsec = 10000, windowSizeMsec = 1000;
+		durationMsec = 1000; count = 1;
 		int subWindowsPerClip = durationMsec / windowSizeMsec;
 		int windowShiftMsec = 0;
 		Properties labels = new Properties();
@@ -233,8 +241,10 @@ public class FeatureExtractionPipelineTest {
 
 		// Create the pipeline with rolling windows and 2 processors.
 		windowShiftMsec = 0;
-		int expectedExtractorCalls = srList.size() * subWindowsPerClip * fpList.size();
 		FeatureExtractionPipeline<double[],double[]> pipeline = getPipeline(windowSizeMsec, windowShiftMsec, fe1, fpList); 
+		int expectedExtractorCalls = srList.size() * subWindowsPerClip; 	// only 1 feature extractor (fe1) the first time.
+		if (!isFeatureExtractionCached())
+			expectedExtractorCalls *= fpList.size();	// The feature will be recalculated for each feature processor.
 
 		Cache.clearManagedCaches();	// Make sure the extractors and processors get called
 		for (SoundRecording sr: srList) {

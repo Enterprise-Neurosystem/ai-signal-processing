@@ -17,6 +17,7 @@ package org.eng.aisp.feature;
 
 
 import org.eng.aisp.feature.extractor.FeatureExtractorTestSuite;
+import org.eng.aisp.feature.pipeline.CachingFeatureExtractionPipelineTest;
 import org.eng.aisp.feature.pipeline.FeatureExtractionPipelineTest;
 import org.eng.aisp.feature.processor.vector.FeatureProcessorTestSuite;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.junit.runners.Suite;
 	FeatureProcessorTestSuite.class,
 	FeatureGramNormalizerTest.class,
 	FeatureExtractionPipelineTest.class,
+	CachingFeatureExtractionPipelineTest.class,
 	CSVFeatureReadWriteTest.class
         })
 public class FeatureTestSuite {

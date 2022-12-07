@@ -15,18 +15,16 @@
  *******************************************************************************/
 package org.eng.aisp;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.eng.aisp.classifier.MemoryCachingLabeledFeatureIterable;
 import org.eng.aisp.feature.IFeatureGramDescriptor;
 import org.eng.aisp.feature.ILabeledFeatureGram;
+import org.eng.aisp.feature.pipeline.CachingFeatureExtractionPipeline;
 import org.eng.aisp.feature.pipeline.FeatureExtractionPipeline;
 import org.eng.aisp.feature.pipeline.LabeledFeatureIterable;
 import org.eng.cache.MemoryCache;
-import org.eng.util.CachingIterable;
 
 /**
  * Helper class to allow us to dynamically load classes that may optionally be on the class path.
@@ -101,7 +99,8 @@ public class AISPRuntime {
 	 * @return never null.
 	 */
 	public <WINDATA, FDATA> FeatureExtractionPipeline<WINDATA, FDATA> getFeatureExtractionPipeline(List<IFeatureGramDescriptor<WINDATA, FDATA>> featureGramDescriptors) {
-		return new FeatureExtractionPipeline<WINDATA,FDATA>(featureGramDescriptors);
+//		return new FeatureExtractionPipeline<WINDATA,FDATA>(featureGramDescriptors);
+		return new CachingFeatureExtractionPipeline<WINDATA,FDATA>(featureGramDescriptors);
 
 	}
 

@@ -28,8 +28,6 @@ import org.eng.aisp.feature.IFeatureGram;
 import org.eng.aisp.feature.IFeatureGramDescriptor;
 import org.eng.aisp.feature.ILabeledFeatureGram;
 import org.eng.aisp.feature.LabeledFeatureGram;
-import org.eng.aisp.feature.extractor.IFeatureExtractor;
-import org.eng.aisp.feature.processor.IFeatureProcessor;
 
 /**
  * Implements the full feature extraction pipeline to produce an array of sub-features from a given IDataWindow or ILabeledDataWindow.
@@ -81,14 +79,33 @@ public class FeatureExtractionPipeline<WINDATA,FDATA> {
 		IFeatureGram<FDATA>[] fgArray = new IFeatureGram[extractorList.size()];
 		int index = 0;
 		for (FeatureGramExtractor<WINDATA, FDATA> sfe : extractorList) {
-			IFeatureGram<FDATA> fg = sfe.extractFeatureGram(dataWindow);
+			IFeatureGram<FDATA> fg =  extract(dataWindow,sfe);
 			fgArray[index] = fg;
 			index++;
 		}
 		return fgArray;
 		
 	}
+	
+	protected IFeatureGram<FDATA> extract(IDataWindow<WINDATA> dataWindow, FeatureGramExtractor<WINDATA, FDATA> fge) {
+		IFeatureGram<FDATA> fg = fge.extractFeatureGram(dataWindow);
+		return fg;
+	}
 
+//	/**
+//	 * Override to implement caching of intermediate (feature) results.
+//	 */
+//	@Override
+//	public IFeatureGram<FDATA>[] extract(IDataWindow<WINDATA> dataWindow) {
+//		IFeatureGram<FDATA>[] fgArray = new IFeatureGram[extractorList.size()];
+//		int index = 0;
+//		for (FeatureGramExtractor<WINDATA, FDATA> sfe : extractorList) {
+//			IFeatureGram<FDATA> fg = extract(dataWindow, sfe.getFeatureGramDescriptor()); 
+//			fgArray[index] = fg;
+//			index++;
+//		}
+//		return fgArray;
+//	
 
 
 	private void showFeatures(String prefix, IDataWindow<WINDATA> dataWindow, IFeature<FDATA>[] featureArray) {
@@ -101,7 +118,7 @@ public class FeatureExtractionPipeline<WINDATA,FDATA> {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
+		final int prime = 33;
 		int result = 1;
 		result = prime * result + ((extractorList == null) ? 0 : extractorList.hashCode());
 		return result;
