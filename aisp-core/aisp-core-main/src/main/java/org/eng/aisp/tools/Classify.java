@@ -676,7 +676,7 @@ public class Classify implements ICommandListener {
 		}
 
 		SoundClip clip = sr.getDataWindow();
-		System.out.print(String.format("%s, %s, %d, %d,",
+		System.out.print(String.format("%s, %s, %d, %d",
 				fileName, 
 				subClipIndex,
 				(int)clip.getStartTimeMsec(),
@@ -686,7 +686,7 @@ public class Classify implements ICommandListener {
 
 		for (String labelName : labelNames) {
 			Classification c = classifications.get(labelName);
-			System.out.print(String.format(" %s, %s, %f", c.getLabelName(), c.getLabelValue(), c.getConfidence())); 
+			System.out.print(String.format(", %s, %s, %f", c.getLabelName(), c.getLabelValue(), c.getConfidence())); 
 		}
 		System.out.println("");
 				
