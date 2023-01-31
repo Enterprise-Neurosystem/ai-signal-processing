@@ -52,6 +52,8 @@ public class KNNDataSummaryClassifier<DATA extends Serializable> extends BaseKNN
 		
 //		Double[] distances = computeDistancesSerial(data);
 		Double[] distances = computeDistancesParallel(data);
+		if (distances.length == 0)
+			throw new RuntimeException("unexpected zero length distances");
 		
 		ArrayIndexComparator comparator = new ArrayIndexComparator(distances);
 		Integer[] indexes = comparator.createIndexArray();   //this contains indexes of sorted distances

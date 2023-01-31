@@ -73,8 +73,10 @@ public abstract class AbstractKNNDataSummarizer<DATA extends Serializable> exten
 		if (reductionRatio < 0.5 || reductionRatio > 1.0) 
 			throw new IllegalArgumentException("Value of reductionRatio must be within the range of [0.5, 1.0]");
 		
-		if (maxListSize <= 0)
-			throw new IllegalArgumentException("maxListSize must be larger than 0");
+		if (maxListSize <= 1)
+			// TODO: there is a bug in shrinkListOfLabeledData() that does not handle maxListSize=1
+			// Can't figure it out atm, so for now just don't allow size 1.	 - dawood 1/2023
+			throw new IllegalArgumentException("maxListSize must be larger than 1");
 		this.maxListSize = maxListSize;
 		this.reductionRatio = reductionRatio;
 		this.stdDevFactor = stdDevFactor;
