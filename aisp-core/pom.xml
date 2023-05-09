@@ -51,7 +51,7 @@
     <plugin>
     	<groupId>org.apache.maven.plugins</groupId>
   		<artifactId>maven-javadoc-plugin</artifactId>
-		<version>2.9.1</version>
+		<version>3.5.0</version>
   		<executions>
     		<execution>
       		<id>attach-javadocs</id>
@@ -63,12 +63,14 @@
               <includeDependencySources>true</includeDependencySources>
               <dependencySourceIncludes>
                 <!-- include ONLY dependencies we control -->
-                <dependencySourceInclude>com.ibm.research.sound:*</dependencySourceInclude>
+                <dependencySourceInclude>org.eng:*</dependencySourceInclude>
               </dependencySourceIncludes>
-              <additionalparam>-Xdoclint:none</additionalparam> <!-- add this to ignore errors on Java 8 javadoc -->
+              <additionalJOption>-Xdoclint:none</additionalJOption> <!-- add this to ignore errors on Java 8 javadoc -->
 		<!-- avoid Java 11 module errors -->
 	      <source>8</source>
     	      <detectJavaApiLink>false</detectJavaApiLink>
+              <failOnError>false</failOnError>
+              <failOnWarnings>false</failOnWarnings>
             </configuration>
     		</execution>
   		</executions>
@@ -77,9 +79,11 @@
               <includeDependencySources>true</includeDependencySources>
               <dependencySourceIncludes>
                 <!-- include ONLY dependencies we control -->
-                <dependencySourceInclude>com.ibm.research.sound:*</dependencySourceInclude>
+                <dependencySourceInclude>org.eng:*</dependencySourceInclude>
               </dependencySourceIncludes>
-              <additionalparam>-Xdoclint:none</additionalparam> <!-- add this to ignore errors on Java 8 javadoc -->
+              <failOnError>false</failOnError>
+              <failOnWarnings>false</failOnWarnings>
+              <additionalJOption>-Xdoclint:none</additionalJOption> <!-- add this to ignore errors on Java 8 javadoc -->
         </configuration>
   	 </plugin>
 	<plugin>
@@ -102,7 +106,7 @@
            then see target/site/aggregate-third-party-report.html -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
-        <version>1.19</version>
+        <version>2.0.1</version>
         <executions>
           <execution>
             <id>download-licenses</id>
