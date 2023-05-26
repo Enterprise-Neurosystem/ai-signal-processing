@@ -137,7 +137,7 @@ public class ClassifierFactoriesTest {
 			Map<String,Object> bindings = new HashMap<String,Object>();
 			bindings.put("distanceMetric", "Lp");
 			bindings.put("maxListSize", size); 
-			for ( String multiplier : trueFalse)  {
+			for ( float multiplier : multipliers)  {
 				bindings.put("stddevMultiplier", multiplier); 
 				for ( String outliers : trueFalse)  {
 					bindings.put("enableOutliers", outliers); 
