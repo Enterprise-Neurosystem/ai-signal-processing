@@ -9,6 +9,9 @@
 	</parent>
 
 	<artifactId>aisp-core-main</artifactId>
+  	<properties>
+		<graalvm.version>21.3.6</graalvm.version>
+	</properties>
 
 
 	<build>
@@ -140,14 +143,43 @@
 			<version>2.1</version>
 			<scope>compile</scope>
 		</dependency>
-
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>${graalvm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+            <version>${graalvm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.tools</groupId>
+            <artifactId>profiler</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.tools</groupId>
+            <artifactId>chromeinspector</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+  
 
 		<!--  
   	#################### Testing dependencies ##############
   	-->
 		<dependency>
 			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
+			<artifactId>
+				reflections</artifactId>
 			<version>0.9.10</version>
 			<scope>test</scope>
 		</dependency>

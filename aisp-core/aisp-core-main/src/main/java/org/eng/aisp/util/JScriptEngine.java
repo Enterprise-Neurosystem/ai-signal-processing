@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -43,7 +44,22 @@ public class JScriptEngine {
 //			if (engine == null && requireSecurity) 
 //				throw new IllegalArgumentException("Could not enable security");
 //		} else {
-			engine = new ScriptEngineManager().getEngineByName("nashorn");
+			System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");	// Turn off graal interpreter warnings below
+//			[To redirect Truffle log output to a file use one of the following options:
+//			* '--log.file=<path>' if the option is passed using a guest language launcher.
+//			* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+//			* Configure logging using the polyglot embedding API.]
+//			[engine] WARNING: The polyglot context is using an implementation that does not support runtime compilation.
+//			The guest application code will therefore be executed in interpreted mode only.
+//			Execution only in interpreted mode will strongly impact the guest application performance.
+//			For more information on using GraalVM see https://www.graalvm.org/java/quickstart/.
+//			To disable this warning the '--engine.WarnInterpreterOnly=false' option or use the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+			ScriptEngineManager sem= new ScriptEngineManager();
+//			List<ScriptEngineFactory> sef = sem.getEngineFactories();
+			engine = sem.getEngineByName("JavaScript");	// The graal engine (not graal.js apparently).
+			Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+			bindings.put("polyglot.js.allowHostAccess", true);
+			bindings.put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
 //		}
 	}
 	
@@ -121,24 +137,24 @@ public class JScriptEngine {
 		if (scriptObj == null)
 			return null;
 		
-	    if (scriptObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror) {
-	    	jdk.nashorn.api.scripting.ScriptObjectMirror scriptObjectMirror = (jdk.nashorn.api.scripting.ScriptObjectMirror) scriptObj;
-	        if (scriptObjectMirror.isArray()) {
-	            List<Object> list = new ArrayList<Object>(); 
-	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-	                list.add(toJava(entry.getValue()));
-	            }
-	            return list;
-	        } else {
-	            Map<String, Object> map = new HashMap<String,Object>(); 
-	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-	                map.put(entry.getKey(), toJava(entry.getValue()));
-	            }
-	            return map;
-	        }
-	    } else {
+//	    if (scriptObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror) {
+//	    	jdk.nashorn.api.scripting.ScriptObjectMirror scriptObjectMirror = (jdk.nashorn.api.scripting.ScriptObjectMirror) scriptObj;
+//	        if (scriptObjectMirror.isArray()) {
+//	            List<Object> list = new ArrayList<Object>(); 
+//	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
+//	                list.add(toJava(entry.getValue()));
+//	            }
+//	            return list;
+//	        } else {
+//	            Map<String, Object> map = new HashMap<String,Object>(); 
+//	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
+//	                map.put(entry.getKey(), toJava(entry.getValue()));
+//	            }
+//	            return map;
+//	        }
+//	    } else {
 	        return scriptObj;
-	    }
+//	    }
 	}
 	
 	/**
