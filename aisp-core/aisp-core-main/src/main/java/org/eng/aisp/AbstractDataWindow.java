@@ -114,7 +114,8 @@ public abstract class AbstractDataWindow<WINDATA> extends InstanceIdentifiedObje
 			
 		this.startTimeMsec = startTimeMsec;
 		this.endTimeMsec = endTimeMsec;
-		this.samplesPerSecond = samplesPerSecond;
+//		this.samplesPerSecond = samplesPerSecond;
+		this.samplesPerSecond = (int)(samplesPerSecond + .5);
 //		if (context != null)
 //			this.context.putAll(context);
 		this.independentVector = independentData;
@@ -226,7 +227,8 @@ public abstract class AbstractDataWindow<WINDATA> extends InstanceIdentifiedObje
 			if (index > maxIndex)
 				index = maxIndex;
 		} else {				// If an upper bound of a window, then compute the index <= this time.
-			index = (int)(msecOffset * samplesPerMsec) ; 	// Index of 1st sample after requested offset.
+//			index = (int)(msecOffset * samplesPerMsec) ; 	// Index of 1st sample after requested offset.
+			index = (int)(msecOffset * samplesPerMsec + 0.5) ; 	// Index of 1st sample after requested offset.
 		}
 		return index;
 		
