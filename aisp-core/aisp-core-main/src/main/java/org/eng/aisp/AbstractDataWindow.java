@@ -70,8 +70,29 @@ public abstract class AbstractDataWindow<WINDATA> extends InstanceIdentifiedObje
 			return 0;
 		if (startMsec == endMsec)
 			throw new RuntimeException("Can't compute sampling rate when start and end times are the same.");
-		double s = 1000.0 * (sampleCount) / (endMsec - startMsec);
-		return (s); 
+		double msec = endMsec - startMsec;
+		double s = 1000.0 * (sampleCount) / msec ; 
+		return roundSamplingRate(s); 
+	}
+
+	private final static double thresholdDistance = 1e-8;
+
+	/**
+	 * Try and handle rounding errors in the samplingRate calculations, sometimes seen in -pad duplicate option.
+	 * and pointed out by Inoue-san.  The rate can come in as 44099.999999999999, but of course should be 44100.
+	 * If we don't do this, then sometimes the last padded sub-window is short by a few samples.
+	 * @param samplesPerSecond
+	 * @return
+	 */
+	protected static double roundSamplingRate(double samplesPerSecond) {
+		double floorDist = samplesPerSecond % 1.000000;
+		if (floorDist !=  0) {
+			if (floorDist < thresholdDistance)
+				samplesPerSecond = (int)(samplesPerSecond);
+			else if (1.0 - floorDist < thresholdDistance)
+				samplesPerSecond = (int)(samplesPerSecond + 1.0);
+		}
+		return samplesPerSecond;
 	}
 
 	/**
@@ -95,6 +116,7 @@ public abstract class AbstractDataWindow<WINDATA> extends InstanceIdentifiedObje
 		return getSampleCount(endTimeMsec - startTimeMsec, samplesPerSecond, false);
 	}
 
+;
 
 	/**
 	 * 
@@ -114,18 +136,22 @@ public abstract class AbstractDataWindow<WINDATA> extends InstanceIdentifiedObje
 			
 		this.startTimeMsec = startTimeMsec;
 		this.endTimeMsec = endTimeMsec;
-//		this.samplesPerSecond = samplesPerSecond;
-		this.samplesPerSecond = (int)(samplesPerSecond + .5);
-//		if (context != null)
-//			this.context.putAll(context);
+		this.samplesPerSecond = roundSamplingRate(samplesPerSecond);;
 		this.independentVector = independentData;
-		int sampleSize = getSampleCount(startTimeMsec, endTimeMsec, samplesPerSecond); 
-
-		if (independentVector != null && getSamplesPerSecond(startTimeMsec, endTimeMsec, independentVector.length()) != samplesPerSecond) 
-			throw new IllegalArgumentException("length of regular independent data array (" + independentVector.length()
+		if (independentVector != null) {
+			// Only make this check if we didn't adjust the sampling rate to be integerized, otherwise this test is not valid.
+			double expectedSamplePerSecond = getSamplesPerSecond(startTimeMsec, endTimeMsec, independentVector.length());
+			if (expectedSamplePerSecond != samplesPerSecond)  {
+				int sampleSize = getSampleCount(startTimeMsec, endTimeMsec, samplesPerSecond); 
+				throw new IllegalArgumentException("length of regular independent data array (" + independentVector.length()
 					+ ") is not the expected size(" + sampleSize + ")");
+			}
+		}
+
 
 	}
+
+
 	
 	@Override
 	public int getSampleSize() {
