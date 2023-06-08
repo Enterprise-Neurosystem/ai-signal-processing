@@ -143,25 +143,8 @@ public class JScriptEngine {
 		if (scriptObj == null)
 			return null;
 		
-//	    if (scriptObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror) {
-//	    	jdk.nashorn.api.scripting.ScriptObjectMirror scriptObjectMirror = (jdk.nashorn.api.scripting.ScriptObjectMirror) scriptObj;
-//	        if (scriptObjectMirror.isArray()) {
-//	            List<Object> list = new ArrayList<Object>(); 
-//	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-//	                list.add(toJava(entry.getValue()));
-//	            }
-//	            return list;
-//	        } else {
-//	            Map<String, Object> map = new HashMap<String,Object>(); 
-//	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-//	                map.put(entry.getKey(), toJava(entry.getValue()));
-//	            }
-//	            return map;
-//	        }
-//	    } else {
 		String className = scriptObj.getClass().getName();
-		ENGLogger.logger.info("class=" + className);
-//		com.oracle.truffle.js.scriptengine.GraalJSBindings b;
+//		ENGLogger.logger.info("class=" + className);
 
 		if (className.equals("com.oracle.truffle.polyglot.PolyglotMap")) {
 			// We need to convert the map to a serializable map, including its contents.
@@ -224,33 +207,7 @@ public class JScriptEngine {
 		
 		jsObj = toJava(jsObj);
 		
-//		if (Map.class.isAssignableFrom(klass)) {
-//			// Lists/arrays come back as ScriptMirrorObject in Nashorn.  Try and parse them out.
-//			if (!(jsObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror))
-//				return null;
-//			jdk.nashorn.api.scripting.ScriptObjectMirror mirror = (jdk.nashorn.api.scripting.ScriptObjectMirror)jsObj;
-//			@SuppressWarnings("rawtypes")
-//			Map<Object , Object>  vlist = mirror.to(Map.class); 
-//
-////			Map<Object , Object>  vlist = new HashMap<Object,Object>(); 
-////			for (Object key : mirror.keySet()) {
-////				Object value = mirror.get(key);
-//////				value = convertBestMatch(value);
-////				vlist.put(key, value);
-////			}
-//			return (T)vlist;
-//		} else if (List.class.isAssignableFrom(klass)) {
-//			// Lists/arrays come back as ScriptMirrorObject in Nashorn.  Try and parse them out.
-//			if (!(jsObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror))
-//				return null;
-//			jdk.nashorn.api.scripting.ScriptObjectMirror mirror = (jdk.nashorn.api.scripting.ScriptObjectMirror)jsObj;
-//			if (!mirror.isArray())
-//				return null;
-//			@SuppressWarnings("rawtypes")
-//			List vlist = mirror.to(List.class); 
-//			return (T)vlist;
-//		} else 
-			if (klass.isAssignableFrom(jsObj.getClass()))  {
+		if (klass.isAssignableFrom(jsObj.getClass()))  {
 			return (T)jsObj;
 		} else  {
 			return null;
