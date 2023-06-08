@@ -39,6 +39,14 @@ public class JScriptEngine {
 	private final ScriptEngine engine;
 //	private final List<String> allowedClasses;
 
+	/**
+	 * @param allowedClasses
+	 * @deprecated in favor of {@link JScriptEngine#JScriptEngine()} since we don't support this and haven't for some time.
+	 */
+	public JScriptEngine(List<String> allowedClasses) {
+		this();
+	}
+
 	public JScriptEngine() {
 //		this.allowedClasses = allowedClasses;
 //		if (allowedClasses != null) {
@@ -85,6 +93,7 @@ public class JScriptEngine {
 //		return null;
 //		
 //	}
+
 
 	public Map<String,Object> runScript(File jsFile, Map<String, Object> bindings, boolean clearBindings) throws ScriptException, IOException {
 		String source = FileUtils.readTextFileIntoString(jsFile.getAbsolutePath());
