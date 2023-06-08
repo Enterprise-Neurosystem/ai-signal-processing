@@ -62,7 +62,7 @@ public class JScriptBuilder {
 	/** String containing all Java import statements automatically included in all scripts before executing */
 	protected static List<String> AVAILABLE_CLASSES_FOR_IMPORT = null;
 	protected final String script;
-	private final JScriptEngine jsEngine = new JScriptEngine(null);
+	private final JScriptEngine jsEngine = new JScriptEngine();
 	protected final Map<String,Object> bindings;
 	private Class<?>[] resultClasses;
 	private final String[] preferredResultVarNames;

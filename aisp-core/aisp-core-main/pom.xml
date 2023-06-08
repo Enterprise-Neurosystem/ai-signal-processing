@@ -10,7 +10,7 @@
 
 	<artifactId>aisp-core-main</artifactId>
   	<properties>
-		<graalvm.version>21.3.6</graalvm.version>
+		<graalvm.version>21.3.6</graalvm.version> <!-- later versions seem to require a jvm later than 11 -->
 	</properties>
 
 

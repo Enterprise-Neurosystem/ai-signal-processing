@@ -30,7 +30,8 @@ import org.junit.runners.Suite;
 	IthShuffleIterableTest2.class,
 	ShufflizingIterableTest.class,
 	ItemReferenceIteratorTest.class,
-	ShufflizingItemReferenceIterableProxyTest.class
+	ShufflizingItemReferenceIterableProxyTest.class,
+	JScriptEngineTest.class
 })
 	
 public class ENGUtilTestSuite {

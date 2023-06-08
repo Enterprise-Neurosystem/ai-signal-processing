@@ -17,7 +17,6 @@ package org.eng.aisp.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,16 +28,19 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.eng.ENGLogger;
 import org.eng.aisp.AISPException;
 import org.eng.util.FileUtils;
+
+import com.google.gson.Gson;
 
 public class JScriptEngine {
 
 	private final ScriptEngine engine;
-	private final List<String> allowedClasses;
+//	private final List<String> allowedClasses;
 
-	public JScriptEngine(List<String> allowedClasses) {
-		this.allowedClasses = allowedClasses;
+	public JScriptEngine() {
+//		this.allowedClasses = allowedClasses;
 //		if (allowedClasses != null) {
 //			engine = createSecuredEngine(allowedClasses);
 //			if (engine == null && requireSecurity) 
@@ -103,7 +105,9 @@ public class JScriptEngine {
 		}
 		engine.setBindings(engineBindings, ScriptContext.ENGINE_SCOPE);
 		engine.eval(source);
-		return engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		return (Map<String,Object>)toJava(bindings);
+
 	}
 	
 	/**
@@ -127,8 +131,10 @@ public class JScriptEngine {
 		return value;
 	}
 
+	private static final Gson gson = new Gson();
+	
 	/**
-	 * Convert a Nashorn ScriptObjectMirror to a more native (and serializable) Java object,
+	 * Convert bindings returned by the script engine to a more native (and serializable) Java object,
 	 * including objects nested in Map or List objects.
 	 * @param scriptObj
 	 * @return a Java object
@@ -153,8 +159,55 @@ public class JScriptEngine {
 //	            return map;
 //	        }
 //	    } else {
-	        return scriptObj;
-//	    }
+		String className = scriptObj.getClass().getName();
+		ENGLogger.logger.info("class=" + className);
+//		com.oracle.truffle.js.scriptengine.GraalJSBindings b;
+
+		if (className.equals("com.oracle.truffle.polyglot.PolyglotMap")) {
+			// We need to convert the map to a serializable map, including its contents.
+			// The PolygloMap was found to contain a Proxy$<N> object which contains another truffle class. Yuck!
+			// So instead try to work with a json formatting of the map.
+			// Sad but true, gson.toJson() throws an exception on missing class when trying to convert to json string.
+			// The toString() seems to print a json-formatting of the map, so use that.
+			String json = scriptObj.toString(); // gson.toJson(scriptObj);
+			Object newObject = null;
+			try {
+				Map map = gson.fromJson(json, Map.class);
+				newObject = convertMap(map);
+			} catch (Exception e) { 
+				;	// Not a map
+			}
+			if (newObject == null) {	// Try a List
+				// Lists come through as "(size)[...]" and don't have any keys?
+				int index = json.indexOf(")");
+				if (index >= 0) {
+					json = json.substring(index+1);
+					try {
+						newObject = gson.fromJson(json, List.class);
+					} catch (Exception e) {
+						;	// Not a list;
+					}
+				}
+			}
+			if (newObject != null)	// else probably fail later.
+				scriptObj = newObject;
+		} else if ( className.equals("com.oracle.truffle.js.scriptengine.GraalJSBindings")) {
+			Map map = (Map)scriptObj; 
+			Map<Object, Object> newMap = convertMap(map);
+			scriptObj = newMap;
+		} 
+	    return scriptObj;
+	}
+
+	protected static Map<Object, Object> convertMap(Map map) {
+		Map<Object,Object> newMap = new HashMap<>();
+		for (Object key : map.keySet()) {
+			Object value = map.get(key);
+			Object newKey = toJava(key);
+			Object newValue = toJava(value);
+			newMap.put(newKey, newValue);
+		}
+		return newMap;
 	}
 	
 	/**
