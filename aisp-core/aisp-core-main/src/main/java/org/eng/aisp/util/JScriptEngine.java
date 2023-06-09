@@ -17,6 +17,7 @@ package org.eng.aisp.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +29,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import org.eng.ENGLogger;
 import org.eng.aisp.AISPException;
+import org.eng.aisp.AISPLogger;
 import org.eng.util.FileUtils;
 
 import com.google.gson.Gson;
@@ -156,33 +157,13 @@ public class JScriptEngine {
 //		ENGLogger.logger.info("class=" + className);
 
 		if (className.equals("com.oracle.truffle.polyglot.PolyglotMap")) {
-			// We need to convert the map to a serializable map, including its contents.
-			// The PolygloMap was found to contain a Proxy$<N> object which contains another truffle class. Yuck!
-			// So instead try to work with a json formatting of the map.
-			// Sad but true, gson.toJson() throws an exception on missing class when trying to convert to json string.
-			// The toString() seems to print a json-formatting of the map, so use that.
-			String json = scriptObj.toString(); // gson.toJson(scriptObj);
-			Object newObject = null;
-			try {
-				Map map = gson.fromJson(json, Map.class);
-				newObject = convertMap(map);
-			} catch (Exception e) { 
-				;	// Not a map
-			}
-			if (newObject == null) {	// Try a List
-				// Lists come through as "(size)[...]" and don't have any keys?
-				int index = json.indexOf(")");
-				if (index >= 0) {
-					json = json.substring(index+1);
-					try {
-						newObject = gson.fromJson(json, List.class);
-					} catch (Exception e) {
-						;	// Not a list;
-					}
-				}
-			}
+			Object newObject = tryPolyglotAsMap(scriptObj);
+			if (newObject == null) 
+				newObject = tryPolyglotAsList(scriptObj);
 			if (newObject != null)	// else probably fail later.
 				scriptObj = newObject;
+		} else if ( className.equals("com.oracle.truffle.polyglogObjectProxyHandler")) {
+			AISPLogger.logger.info("scriptObj=" + scriptObj.toString());
 		} else if ( className.equals("com.oracle.truffle.js.scriptengine.GraalJSBindings")) {
 			Map map = (Map)scriptObj; 
 			Map<Object, Object> newMap = convertMap(map);
@@ -191,6 +172,64 @@ public class JScriptEngine {
 	    return scriptObj;
 	}
 
+	private static List tryPolyglotAsList(Object scriptObj) {
+		String json = gson.toJson(scriptObj); 
+		// Lists come through as "(size)[...]" and don't have any keys?
+		int index = json.indexOf(")");
+		List newObject = null;
+		if (index >= 0) {
+			json = json.substring(index+1);
+			try {
+				newObject = gson.fromJson(json, List.class);
+			} catch (Exception e) {
+				;	// Not a list;
+			}
+		}
+		return newObject;
+	}
+
+	/**
+	 * Try and convert the given PolyglotMap instance to a Map.
+	 * @param polyglot
+	 * @return null if could not be converted.
+	 */
+	private static Map tryPolyglotAsMap(Object polyglot) {
+		// We need to convert the map to a serializable map, including its contents.
+		// The PolygloMap was found to contain a Proxy$<N> object which contains another truffle class. Yuck!
+		// So try to work with a json formatting of the map.
+		// Sad but true, gson.toJson() throws an exception on missing class when trying to convert to json string.
+		// The toString() seems to print a json-formatting of the map, so use that.
+		Map newObject = null;
+		String json; 
+
+		// We could do this as it might be more efficient, but the toString() version below seems to be sufficient.
+//		try {
+//			json = gson.toJson(polyglot);	// This throws  java.lang.ClassNotFoundException: com.sun.management.ThreadMXBean
+//			Map map = gson.fromJson(json, Map.class);
+//			newObject = convertMap(map);
+//			return newObject;
+//		} catch (Throwable e) { 
+//			;
+//		}
+
+		// This seems to help use avoid treating polyglot object as Map below, when values are Proxy$ instances.
+		// Leaving values as $Proxy is bad since they don't seem to be serializable.
+		try {
+			json = polyglot.toString();
+			Map map = gson.fromJson(json, Map.class);
+			newObject = convertMap(map);
+			return newObject;
+		} catch (Exception e) { 
+			;
+		}
+
+		// Try this last 
+		if (newObject == null && polyglot instanceof Map) 
+			newObject = convertMap((Map)polyglot); 
+		return newObject;
+	}
+	
+	
 	protected static Map<Object, Object> convertMap(Map map) {
 		Map<Object,Object> newMap = new HashMap<>();
 		for (Object key : map.keySet()) {
