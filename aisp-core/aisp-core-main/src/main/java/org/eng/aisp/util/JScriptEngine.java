@@ -164,6 +164,8 @@ public class JScriptEngine {
 				newObject = tryPolyglotAsMap(scriptObj);
 			if (newObject != null)	// else probably fail later.
 				scriptObj = newObject;
+			else
+				AISPLogger.logger.warning("Could not convert object of class " + className);
 		} else if ( className.equals("com.oracle.truffle.polyglogObjectProxyHandler")) {
 			AISPLogger.logger.info("scriptObj=" + scriptObj.toString());
 		} else if ( className.equals("com.oracle.truffle.js.scriptengine.GraalJSBindings")) {
@@ -191,6 +193,38 @@ public class JScriptEngine {
 		return newObject;
 	}
 
+//	private static String toJson(Object scriptObj) {
+//		List list = tryPolyglotAsList(scriptObj);
+//		if (list != null)
+//			return gson.toJson(list);
+//		if (scriptObj instanceof Map) {
+//			Map map = (Map)scriptObj; 
+//			StringBuilder sb = null;
+//			for (Object key : map.keySet()) {
+//				if (sb == null) {
+//					sb = new StringBuilder();
+//					sb.append("{ ");
+//				} else {
+//					sb.append(", ");
+//				}
+//				Object value = map.get(key);
+//				String keyString = toJson(key);
+//				String valueString = toJson(value);
+//				sb.append(keyString);
+//				sb.append(" : ");
+//				sb.append(valueString);
+//			}
+//			sb.append(" }");
+//			return sb.toString();
+//		} else if (scriptObj instanceof Number) {
+//			return scriptObj.toString();
+//		} else if (scriptObj instanceof String) {
+//			return "\"" + scriptObj.toString() + "\"";
+//		} else {
+//			AISPLogger.logger.warning("Unexpected object type " + scriptObj.getClass().getName());
+//			return gson.toJson(scriptObj);
+//		}
+//	}
 	/**
 	 * Try and convert the given PolyglotMap instance to a Map.
 	 * @param polyglot
@@ -218,7 +252,9 @@ public class JScriptEngine {
 		// This seems to help use avoid treating polyglot object as Map below, when values are Proxy$ instances.
 		// Leaving values as $Proxy is bad since they don't seem to be serializable.
 		try {
+			// TODO: this fails for long values when toString() starts to abbreviate values.
 			json = polyglot.toString();
+//			json = toJson(polyglot);
 			Map map = gson.fromJson(json, Map.class);
 			newObject = convertMap(map);
 			return newObject;
