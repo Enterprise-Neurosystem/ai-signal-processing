@@ -166,12 +166,16 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 		
 		// Padding option
 		String padOption = cmdargs.getOption("pad", "no");
-		if (padOption.equals("zero"))
+		if (padOption.equals("zero")) {
 			padType = PadType.ZeroPad;
-		else if (padOption.equals("duplicate"))
+		} else if (padOption.equals("duplicate")) {
 			padType = PadType.DuplicatePad;
-		else
+		} else if (padOption.equals("no")) {
 			padType = PadType.NoPad;
+		} else {
+			System.err.println("Unrecognized pad type '" + padOption + "'");
+			return false;
+		}
 
 		boolean balancedLabels;
 		boolean useUpSampling; 
@@ -249,6 +253,13 @@ public class GetModifiedSoundOptions extends GetSoundOptions {
 				msg = "Sounds will be clipped every " + clipLenMsec + " msec into " + clipLenMsec + " msec clips (padding=" + padType.name() + ")";
 			System.out.println(msg);
 			sounds = new FixedDurationSoundRecordingShuffleIterable(sounds, clipLenMsec, clipShiftMsec, padType);
+//			int index=0;
+//			for (SoundRecording sr : sounds) {
+//				SoundClip clip = sr.getDataWindow();
+//				byte[] pcmData = clip.getPCMData();
+//				System.out.println("index=" + index + ", pcmData length = " + pcmData.length + ", tags: " + sr.getTags());
+//				index++;
+//			}
 //			System.out.println(TrainingSetInfo.getInfo(sounds).prettyFormat());
 //			if (repeatableShuffle && balancedLabels) {
 //				System.err.println("NOTE: repeatable shufflability (the default) while balancing labels and clipping\n"
