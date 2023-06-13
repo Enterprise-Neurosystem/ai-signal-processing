@@ -25,7 +25,7 @@ public class JScriptEngineTest {
 
 	@Test
 	public void testListReturnType() throws ScriptException {
-		String value = "[ 1, 2, 3 ]";
+		String value = "[ 1.1, 2.1, 3.1 ]";
 		Class<List> clazz = List.class;
 		variableTest(value, clazz);
 	}

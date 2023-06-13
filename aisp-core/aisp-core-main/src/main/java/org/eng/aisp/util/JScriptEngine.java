@@ -17,11 +17,12 @@ package org.eng.aisp.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -143,6 +144,7 @@ public class JScriptEngine {
 
 	private static final Gson gson = new Gson();
 	
+
 	/**
 	 * Convert bindings returned by the script engine to a more native (and serializable) Java object,
 	 * including objects nested in Map or List objects.
@@ -157,9 +159,9 @@ public class JScriptEngine {
 //		ENGLogger.logger.info("class=" + className);
 
 		if (className.equals("com.oracle.truffle.polyglot.PolyglotMap")) {
-			Object newObject = tryPolyglotAsMap(scriptObj);
-			if (newObject == null) 
-				newObject = tryPolyglotAsList(scriptObj);
+			Object newObject = tryPolyglotAsList(scriptObj); 
+			if (newObject == null)
+				newObject = tryPolyglotAsMap(scriptObj);
 			if (newObject != null)	// else probably fail later.
 				scriptObj = newObject;
 		} else if ( className.equals("com.oracle.truffle.polyglogObjectProxyHandler")) {
@@ -172,18 +174,19 @@ public class JScriptEngine {
 	    return scriptObj;
 	}
 
-	private static List tryPolyglotAsList(Object scriptObj) {
-		String json = gson.toJson(scriptObj); 
-		// Lists come through as "(size)[...]" and don't have any keys?
-		int index = json.indexOf(")");
-		List newObject = null;
-		if (index >= 0) {
-			json = json.substring(index+1);
-			try {
-				newObject = gson.fromJson(json, List.class);
-			} catch (Exception e) {
-				;	// Not a list;
-			}
+	/**
+	 *  Graal toString for lists seems to be (%d)[<items>].
+	 *  This pattern matches the (%d)[ part
+	 */
+	private static Pattern listValuePattern = Pattern.compile("^\\(\\d+\\)\\[");
+
+	private static List<?> tryPolyglotAsList(Object scriptObj) {
+		List<?> newObject = null;
+		String value = scriptObj.toString();
+		Matcher m = listValuePattern.matcher(value);
+		if (m.find()) {
+			value = m.replaceAll("[");
+			newObject = gson.fromJson(value, List.class);;
 		}
 		return newObject;
 	}
