@@ -234,13 +234,13 @@ public class JScriptBuilder {
 		
 		try {
 //			AISPLogger.logger.info("Script is...\n" + script);
-			this.jsEngine.runScript(script, bindings, true);
+			this.jsEngine.runScript(script, bindings, false, false);
 			for (int i=0; i<resultClasses.length ; i++) {
 				String varName = preferredResultVarNames[i];
 				Class<?> resultClass = resultClasses[i];
-				Object result = this.jsEngine.getScriptVariable(resultClass, varName);
+				Object result = this.jsEngine.getScriptVariable(resultClass, varName, false);
 				if (result == null) 
-					result = this.jsEngine.getScriptVariable(resultClass, null);
+					result = this.jsEngine.getScriptVariable(resultClass, null, false);
 				if (result == null) 
 					throw new AISPException("Script did not create an instance of " + resultClass.getName());
 				results.put(varName,  result);

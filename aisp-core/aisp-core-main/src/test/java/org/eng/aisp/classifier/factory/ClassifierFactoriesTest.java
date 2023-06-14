@@ -38,6 +38,7 @@ import org.eng.aisp.classifier.gmm.GMMClassifier;
 import org.eng.aisp.classifier.knn.merge.EuclidianDistanceMergeKNNClassifier;
 import org.eng.aisp.classifier.knn.merge.L1DistanceMergeKNNClassifier;
 import org.eng.aisp.classifier.knn.merge.LpDistanceMergeKNNClassifier;
+import org.eng.util.ClassUtilities;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -73,12 +74,24 @@ public class ClassifierFactoriesTest {
 		for (String js : fileNames) {
 			String baseName = js.replaceAll("\\" + extension, "");
 			baseName = new File(baseName).getName();
+			IClassifier<double[]> classifier = null; 
 			try {
 //				 System.out.println("loading " + baseName);
-				IClassifier<double[]> classifier = ClassifierFactories.newDefaultClassifier(baseName);
+				classifier = ClassifierFactories.newDefaultClassifier(baseName);
 				Assert.assertTrue(classifier != null);
 			} catch (Exception e) { // Catch so we can show which js file failed.
 				Assert.fail("Could not create classifier for name " + baseName + ": " + e.getMessage());
+			}
+			// Also make sure the (untrained) classifier created via JavaScript is serializable since,
+			// when porting to use Graal, we initially had cases where the maps  passed to classifier constructors were not serializable.
+			try {
+				if (classifier != null)
+					ClassUtilities.serialize(classifier);
+				else
+					Assert.fail("Not expected to get to this line");
+			} catch (Exception e) {
+				Assert.fail("Could serialize classifier for name name " + baseName + ": " + e.getMessage());
+				
 			}
 		}
 	}
