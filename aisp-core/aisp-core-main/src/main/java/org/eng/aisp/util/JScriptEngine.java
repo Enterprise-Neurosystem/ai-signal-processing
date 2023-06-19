@@ -17,10 +17,13 @@ package org.eng.aisp.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -29,52 +32,83 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.eng.aisp.AISPException;
+import org.eng.aisp.AISPLogger;
 import org.eng.util.FileUtils;
+
+import com.google.gson.Gson;
 
 public class JScriptEngine {
 
 	private final ScriptEngine engine;
-	private final List<String> allowedClasses;
+//	private final List<String> allowedClasses;
 
+	/**
+	 * @param allowedClasses
+	 * @deprecated in favor of {@link JScriptEngine#JScriptEngine()} since we don't support this and haven't for some time.
+	 */
 	public JScriptEngine(List<String> allowedClasses) {
-		this.allowedClasses = allowedClasses;
+		this();
+	}
+
+	public JScriptEngine() {
+//		this.allowedClasses = allowedClasses;
 //		if (allowedClasses != null) {
 //			engine = createSecuredEngine(allowedClasses);
 //			if (engine == null && requireSecurity) 
 //				throw new IllegalArgumentException("Could not enable security");
 //		} else {
-			engine = new ScriptEngineManager().getEngineByName("nashorn");
+			System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");	// Turn off graal interpreter warnings below
+//			[To redirect Truffle log output to a file use one of the following options:
+//			* '--log.file=<path>' if the option is passed using a guest language launcher.
+//			* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+//			* Configure logging using the polyglot embedding API.]
+//			[engine] WARNING: The polyglot context is using an implementation that does not support runtime compilation.
+//			The guest application code will therefore be executed in interpreted mode only.
+//			Execution only in interpreted mode will strongly impact the guest application performance.
+//			For more information on using GraalVM see https://www.graalvm.org/java/quickstart/.
+//			To disable this warning the '--engine.WarnInterpreterOnly=false' option or use the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+			ScriptEngineManager sem= new ScriptEngineManager();
+//			List<ScriptEngineFactory> sef = sem.getEngineFactories();
+//			engine = sem.getEngineByName("JavaScript");	// The graal engine (not graal.js apparently).
+			engine = sem.getEngineByName("graal.js");	// The graal engine (not graal.js apparently).
+			Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+			bindings.put("polyglot.js.allowHostAccess", true);
+			bindings.put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
 //		}
 	}
 	
-//	private final static String SecureEngineFactoryClass = "jdk.nashorn.api.scripting.NashornScriptEngineFactory";
-//  See https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/nashorn/api.html
-//	private static ScriptEngine createSecuredEngine(List<String> allowedClasses) {
-//		try { 
-////			NashornScriptEngineFactory factory = new NashornScriptEngineFactory(); 
-//			Class klazz = Class.forName(SecureEngineFactoryClass);
-//			Object obj = klazz.newInstance();
-//			if (obj instanceof ScriptEngineFactory){
-//				ScriptEngineFactory factory = (ScriptEngineFactory)obj;
-//				factory.
-//				ScriptEngine engine = factory.getScriptEngine(
-//		    	      new MyClassFilterTest.MyCF());
-//		} catch (Exception e) {
-//			AISPLogger.logger.severe("Could not load secure engine class " + SecureEngineFactoryClass 
-//					+ ". Restricting access to following classes is not available: " + allowedClasses);
-//			e.printStackTrace();
-//		}
-//		return null;
-//		
-//	}
+
+
 
 	public Map<String,Object> runScript(File jsFile, Map<String, Object> bindings, boolean clearBindings) throws ScriptException, IOException {
 		String source = FileUtils.readTextFileIntoString(jsFile.getAbsolutePath());
 		return runScript(source, bindings, clearBindings);
 	}
 
+	/**
+	 * A convenience on {@link #runScript(String, Map, boolean, boolean)} with conversion of bindings to Serializable.
+	 * @param source
+	 * @param bindings
+	 * @param clearBindings
+	 * @return
+	 * @throws ScriptException
+	 */
 	public Map<String,Object> runScript(String source, Map<String, Object> bindings, boolean clearBindings) throws ScriptException {
+		return this.runScript(source, bindings, clearBindings, true);
+	}
+
+	public Map<String,Object> runScript(String source, Map<String, Object> bindings, boolean clearBindings, boolean convertToSerializable) throws ScriptException {
 //		System.out.println("executing js source:" + source);
+		bindings = runScriptForBindings(source, bindings, clearBindings);
+		if (convertToSerializable)
+			bindings = (Map<String,Object>)makeSerializable(bindings);
+		return bindings;
+
+	}
+
+
+	private Map<String, Object> runScriptForBindings(String source, Map<String, Object> bindings,
+			boolean clearBindings) throws ScriptException {
 		Bindings engineBindings; 
 		if (clearBindings) 
 			engineBindings = engine.createBindings(); 
@@ -87,7 +121,19 @@ public class JScriptEngine {
 		}
 		engine.setBindings(engineBindings, ScriptContext.ENGINE_SCOPE);
 		engine.eval(source);
-		return engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		
+		// For Graal the values returned here may be instances of PolyglotMap. 
+		bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+
+		// Extract the real Java objects (i.e. avoid PolyglotMap). 
+		Map<String,Object> map = new HashMap<>();
+		for (String key : bindings.keySet()) {
+			// This get() seems to convert/get the actual underlying Java object created in Javascript,
+			// which is otherwise a PolyglotMap which we don't want to return as a value in the returned map.
+			Object obj = bindings.get(key);
+			map.put(key, obj);
+		}
+		return map;
 	}
 	
 	/**
@@ -97,95 +143,198 @@ public class JScriptEngine {
 	 * @return null if not found.
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T> T getInstance(Map<String, Object> bindings, Class<T> klass) {
+	private static <T> T getInstance(Map<String, Object> bindings, Class<T> klass, boolean convertToSerializable) {
 		T value = null;
 		for (String key : bindings.keySet()) {
 			Object o = bindings.get(key);
-			value = getTypeMatchedInstance(o, klass);
+			value = getTypeMatchedInstance(o, klass, convertToSerializable);
 			if (value != null)
-//			if (o != null && klass.isAssignableFrom(o.getClass())) {
-//				value = (T)o;
-				break;
-//			}
+				return value;
 		}
-		return value;
+		return null;
 	}
 
+	private static final Gson gson = new Gson();
+	
+
 	/**
-	 * Convert a Nashorn ScriptObjectMirror to a more native (and serializable) Java object,
+	 * Convert bindings returned by the script engine to a more native (and serializable) Java object,
 	 * including objects nested in Map or List objects.
 	 * @param scriptObj
 	 * @return a Java object
+	 * @throws ScriptException 
 	 */
-	private static Object toJava(Object scriptObj) {
-		if (scriptObj == null)
+	private static Object makeSerializable(Object scriptObj) throws ScriptException {
+		if (scriptObj == null) 
 			return null;
 		
-	    if (scriptObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror) {
-	    	jdk.nashorn.api.scripting.ScriptObjectMirror scriptObjectMirror = (jdk.nashorn.api.scripting.ScriptObjectMirror) scriptObj;
-	        if (scriptObjectMirror.isArray()) {
-	            List<Object> list = new ArrayList<Object>(); 
-	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-	                list.add(toJava(entry.getValue()));
-	            }
-	            return list;
-	        } else {
-	            Map<String, Object> map = new HashMap<String,Object>(); 
-	            for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
-	                map.put(entry.getKey(), toJava(entry.getValue()));
-	            }
-	            return map;
-	        }
-	    } else {
-	        return scriptObj;
-	    }
+		String className = scriptObj.getClass().getName();
+//		ENGLogger.logger.info("class=" + className);
+
+		if (className.equals("com.oracle.truffle.polyglot.PolyglotMap")) {
+			Object newObject = tryPolyglotAsList(scriptObj); 
+			if (newObject == null)
+				newObject = polyglotAsMap(scriptObj);
+			if (newObject != null)	// else probably fail later.
+				scriptObj = newObject;
+			else
+				AISPLogger.logger.warning("Could not convert object of class " + className);
+//		} else if ( className.equals("com.oracle.truffle.polyglogObjectProxyHandler")) {
+//			AISPLogger.logger.info("scriptObj=" + scriptObj.toString());
+		} else if ( className.equals("com.oracle.truffle.js.scriptengine.GraalJSBindings")) {
+			scriptObj = makeMapSerializable((Map)scriptObj);
+		}  else if (scriptObj instanceof Map) {	// Make sure all values are also java objects. 
+			scriptObj = makeMapSerializable((Map)scriptObj);
+		}
+		
+		if (!(scriptObj instanceof Serializable))
+			throw new ScriptException("Object of class " + scriptObj.getClass().getName() 
+					+ " could not be converted to Serializable");
+		
+	    return scriptObj;
+	}
+
+	/**
+	 *  Graal toString for lists seems to be (%d)[<items>].
+	 *  This pattern matches the (%d)[ part
+	 */
+	private static Pattern listValuePattern = Pattern.compile("^\\(\\d+\\)\\[");
+
+	private static List<?> tryPolyglotAsList(Object scriptObj) throws ScriptException {
+		List<?> newObject = null;
+		String value = scriptObj.toString();
+		Matcher m = listValuePattern.matcher(value);
+		if (m.find()) {
+			value = m.replaceAll("[");
+			// If it is a list of non-primitives, in particular Java objects, they are not serialized with our toJson().
+			// toString() produces somethign like the following when this is the case.
+			// (5)[JavaObject[org.eng.aisp.classifier.gmm.GMMClassifierBuilder], 
+			// for an eventual answer, hopefully.
+			// Note that if we use Bindings.get(<varname>) the actual object does come back, but not here when we don't have and engine instance.
+			// See runScriptForBindings() for usage the extracts the Java object created in JavaScript.
+			// Also note, that the same thing would happen in polyglotAsMap(), its just that so far our scripts have not put our Java objects in maps. 
+			// For now we don't see a way to support this.
+			// See https://stackoverflow.com/questions/76466839/how-do-i-convert-objects-created-in-graal-javascript-to-serializable-java-object
+			String json; 
+			if (value.contains("JavaObject")) {
+				throw new ScriptException("Can not convert Java objects");
+			} else {
+				json = toJson(scriptObj);
+			}
+			newObject = gson.fromJson(json, List.class);
+		}
+		return newObject;
+	}
+
+
+	
+	/**
+	 * Convert the given script-created object to a json string.
+	 * The implementation does NOT use Gson since its toJson() methods throws a ClassNotFoundException on ThreadMXBean class.
+	 * Instead, use JavaScript's JSON.stringify() to convert object to json string. 
+	 * @param scriptObj
+	 * @return never null
+	 * @throws ScriptException
+	 */
+	private static String toJson(Object scriptObj) throws ScriptException {
+		JScriptEngine engine = new JScriptEngine();
+		String script = "var json = JSON.stringify(obj)";
+		Map<String,Object> bindings = new HashMap<>();
+		bindings.put("obj", scriptObj);
+		Map<String,Object> result = engine.runScriptForBindings(script, bindings, false);
+		Object json = result.get("json");
+		json = json.toString();
+		return (String)json;
 	}
 	
+	/**
+	 * Try and convert the given PolyglotMap instance to a Map.
+	 * @param polyglot
+	 * @return null if could not be converted.
+	 * @throws ScriptException 
+	 */
+	private static Map polyglotAsMap(Object polyglot) throws ScriptException {
+		// We need to convert the map to a serializable map, including its contents.
+		// The PolygloMap was found to contain a Proxy$<N> object which contains another truffle class. Yuck!
+		// So try to work with a json formatting of the map.
+		// Sad but true, gson.toJson() throws an exception on missing class when trying to convert to json string.
+		// The toString() seems to print a json-formatting of the map, so use that.
+		Map newObject = null;
+		String json; 
+
+		// This seems to help use avoid treating polyglot object as Map below, when values are Proxy$ instances.
+		// Leaving values as $Proxy is bad since they don't seem to be serializable.
+		try {
+			json = toJson(polyglot);
+			Map map = gson.fromJson(json, Map.class);
+			newObject = makeMapSerializable(map);
+			return newObject;
+		} catch (Exception e) { 
+			;
+		}
+
+		// Try this last 
+		if (newObject == null && polyglot instanceof Map) 
+			newObject = makeMapSerializable((Map)polyglot); 
+		return newObject;
+	}
+	
+	
+	private static Map<Object, Object> makeMapSerializable(Map map) throws ScriptException {
+		Map<Object,Object> newMap = new HashMap<>();
+		for (Object key : map.keySet()) {
+			Object value = map.get(key);
+			Object newKey = makeSerializable(key);
+			Object newValue = makeSerializable(value);
+			newMap.put(newKey, newValue);
+		}
+		return newMap;
+	}
+	
+	/**
+	 * A convenience on {@link #getTypeMatchedInstance(Object, Class, boolean)} with serializability conversion.
+	 * @param <T>
+	 * @param jsObj
+	 * @param klass
+	 * @return
+	 * @deprecated in favor of {@link #getTypeMatchedInstance(Object, Class, boolean)}
+	 */
+	@SuppressWarnings({ "restriction", "unchecked" })
+	public static <T> T getTypeMatchedInstance(Object jsObj, Class<T> klass) {
+		return getTypeMatchedInstance(jsObj, klass, true);
+	}
+
 	/**
 	 * Try and extract an instance of the given class from the given object retrieved from JavaScript bindings.
 	 * @param <T>
 	 * @param jsObj object retrieved from JavaScript bindings
 	 * @param klass class to convert the object to and return an instance of.
-	 * @return null if object could not be converted to an instance of the given class or is given as null.
+	 * @param convertToSerializable if true, then make sure the obj value is serializable or fail in the conversion and return null.
+	 * @return null if object could not be converted to an instance of the given class, serializability is requested but could not be converted, or is given as null.
 	 */
 	@SuppressWarnings({ "restriction", "unchecked" })
-	public static <T> T getTypeMatchedInstance(Object jsObj, Class<T> klass) {
+	public static <T> T getTypeMatchedInstance(Object jsObj, Class<T> klass, boolean convertToSerializable) {
 		if (jsObj == null)
 			return null;
 		
-		jsObj = toJava(jsObj);
+		if (convertToSerializable) {
+			try {
+				jsObj = makeSerializable(jsObj);
+			} catch (ScriptException e) {
+				return null;
+			}
+		}
 		
-//		if (Map.class.isAssignableFrom(klass)) {
-//			// Lists/arrays come back as ScriptMirrorObject in Nashorn.  Try and parse them out.
-//			if (!(jsObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror))
-//				return null;
-//			jdk.nashorn.api.scripting.ScriptObjectMirror mirror = (jdk.nashorn.api.scripting.ScriptObjectMirror)jsObj;
-//			@SuppressWarnings("rawtypes")
-//			Map<Object , Object>  vlist = mirror.to(Map.class); 
-//
-////			Map<Object , Object>  vlist = new HashMap<Object,Object>(); 
-////			for (Object key : mirror.keySet()) {
-////				Object value = mirror.get(key);
-//////				value = convertBestMatch(value);
-////				vlist.put(key, value);
-////			}
-//			return (T)vlist;
-//		} else if (List.class.isAssignableFrom(klass)) {
-//			// Lists/arrays come back as ScriptMirrorObject in Nashorn.  Try and parse them out.
-//			if (!(jsObj instanceof jdk.nashorn.api.scripting.ScriptObjectMirror))
-//				return null;
-//			jdk.nashorn.api.scripting.ScriptObjectMirror mirror = (jdk.nashorn.api.scripting.ScriptObjectMirror)jsObj;
-//			if (!mirror.isArray())
-//				return null;
-//			@SuppressWarnings("rawtypes")
-//			List vlist = mirror.to(List.class); 
-//			return (T)vlist;
-//		} else 
-			if (klass.isAssignableFrom(jsObj.getClass()))  {
+		if (klass.isAssignableFrom(jsObj.getClass()))  {
 			return (T)jsObj;
 		} else  {
 			return null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getScriptVariable(Class<T> klass, String varName) throws AISPException {
+		return getScriptVariable(klass, varName, true);
 	}
 		
 	/**
@@ -196,18 +345,18 @@ public class JScriptEngine {
 	 * @throws AISPException found, but not of the requested type. 
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getScriptVariable(Class<T> klass, String varName) throws AISPException {
+	public <T> T getScriptVariable(Class<T> klass, String varName, boolean convertToSerializable) throws AISPException {
 		Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 		T value;
 		if (varName != null) {
 			Object obj = bindings.get(varName);
-			value = getTypeMatchedInstance(obj, klass);
+			value = getTypeMatchedInstance(obj, klass, convertToSerializable);
 			if (value == null) 
 				throw new AISPException("Variable with name '" + varName + "' is not of the expected type (" + klass.getName() 
 				+ ") or can not be converted.");
 		} else {
 			// Search all bindings
-			value = getInstance(bindings, klass);
+			value = getInstance(bindings, klass, convertToSerializable);
 		}
 		return (T)value;
 	}
@@ -219,8 +368,8 @@ public class JScriptEngine {
 	 * @param dflt the default value to return if no variable was found matching the request. 
 	 * @return the value from the script or the default value.
 	 */
-	public <T> T getScriptVariable(Class<T> klass, String varName, T dflt) throws AISPException {
-		T value = getScriptVariable(klass, varName);
+	public <T> T getScriptVariable(Class<T> klass, String varName, T dflt, boolean convertToSerializable) throws AISPException {
+		T value = getScriptVariable(klass, varName, convertToSerializable);
 
 		// Check to see if we should use the default value given.
 		if (value == null) {
