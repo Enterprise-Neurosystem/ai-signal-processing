@@ -1,0 +1,6 @@
+metadata:
+  name: Sound Anomaly Classifier 
+  visible: false    # Hide from the workbench in favor of neural-net.jsyt
+templateText: |-
+   var classifier = new SoundAnomalyClassifier() 
+
