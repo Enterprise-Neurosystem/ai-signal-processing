@@ -41,22 +41,5 @@
 			<version>${revision}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.deeplearning4j</groupId>
-			<artifactId>deeplearning4j-nn</artifactId>
-			<version>1.0.0-M1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native-platform</artifactId>
-			<version>1.0.0-M1.1</version>
-		</dependency>
-		<dependency>
-			<!-- is this one really needed -->
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native</artifactId>
-			<version>1.0.0-M1.1</version>
-			<classifier>linux-arm64</classifier>
-		</dependency>
 	</dependencies>
 </project>

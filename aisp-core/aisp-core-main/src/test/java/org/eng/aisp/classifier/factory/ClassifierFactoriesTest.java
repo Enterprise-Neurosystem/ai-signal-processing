@@ -31,9 +31,6 @@ import org.eng.aisp.classifier.IFixableClassifier;
 import org.eng.aisp.classifier.IFixedClassifier;
 import org.eng.aisp.classifier.JunitClassifier;
 import org.eng.aisp.classifier.anomaly.normal.NormalDistributionAnomalyClassifier;
-import org.eng.aisp.classifier.cnn.CNNClassifier;
-import org.eng.aisp.classifier.dcase.DCASEClassifier;
-import org.eng.aisp.classifier.factory.ClassifierFactories;
 import org.eng.aisp.classifier.gmm.GMMClassifier;
 import org.eng.aisp.classifier.knn.merge.EuclidianDistanceMergeKNNClassifier;
 import org.eng.aisp.classifier.knn.merge.L1DistanceMergeKNNClassifier;
@@ -221,28 +218,28 @@ public class ClassifierFactoriesTest {
 		
 	}
 
-	@Test
-	public void testJSYT_NeuralNet_CNN() throws AISPException {
-		Map<String,Object> bindings = new HashMap<String,Object>();
-		bindings.put("layerDefinition", "CNN");
-		// We don't need to test all algorithm parameters here since it was done in testJSYT_NeuralNet_DCASE()
-		ClassifierFactoriesTest.testFeatureGramArgs("neural-net", null, true, bindings, null, CNNClassifier.class, false);
-	}
-
-	@Test
-	public void testJSYT_NeuralNet_DCASE() throws AISPException {
-		Map<String,Object> bindings = new HashMap<String,Object>();
-		int[] epochs = new int[] { 100, 50};
-		List<IFixedClassifier> allClassifiers= new ArrayList<>();
-		boolean doTrain = false;	// Don't train (too little data) just make sure models are all different.
-	
-		bindings.put("layerDefinition", "DCASE");
-		for (int epoch : epochs) {
-			bindings.put("nEpochs", epoch);
-			ClassifierFactoriesTest.testFeatureGramArgs("neural-net", null, true, bindings, allClassifiers, DCASEClassifier.class, doTrain);
-			doTrain = false;
-		}
-	}
+//	@Test
+//	public void testJSYT_NeuralNet_CNN() throws AISPException {
+//		Map<String,Object> bindings = new HashMap<String,Object>();
+//		bindings.put("layerDefinition", "CNN");
+//		// We don't need to test all algorithm parameters here since it was done in testJSYT_NeuralNet_DCASE()
+//		ClassifierFactoriesTest.testFeatureGramArgs("neural-net", null, true, bindings, null, CNNClassifier.class, false);
+//	}
+//
+//	@Test
+//	public void testJSYT_NeuralNet_DCASE() throws AISPException {
+//		Map<String,Object> bindings = new HashMap<String,Object>();
+//		int[] epochs = new int[] { 100, 50};
+//		List<IFixedClassifier> allClassifiers= new ArrayList<>();
+//		boolean doTrain = false;	// Don't train (too little data) just make sure models are all different.
+//	
+//		bindings.put("layerDefinition", "DCASE");
+//		for (int epoch : epochs) {
+//			bindings.put("nEpochs", epoch);
+//			ClassifierFactoriesTest.testFeatureGramArgs("neural-net", null, true, bindings, allClassifiers, DCASEClassifier.class, doTrain);
+//			doTrain = false;
+//		}
+//	}
 
 	/**
 	 * Helper method to test a .jsyt file defining a classifier using various common feature gram extraction parameters.

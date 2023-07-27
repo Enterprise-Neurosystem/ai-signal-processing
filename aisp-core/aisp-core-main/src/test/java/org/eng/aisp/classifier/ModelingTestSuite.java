@@ -19,7 +19,6 @@ package org.eng.aisp.classifier;
 import org.eng.aisp.classifier.anomaly.normal.NormalDistributionAnomalyClassifierBuilderTest;
 import org.eng.aisp.classifier.anomaly.normal.NormalDistributionAnomalyClassifierTest;
 import org.eng.aisp.classifier.anomaly.normal.OnlineNormalDistributionAnomalyClassifierTest;
-import org.eng.aisp.classifier.dcase.DCASEClassifierTest;
 import org.eng.aisp.classifier.factory.ClassifierFactoriesTest;
 import org.eng.aisp.classifier.gmm.GMMClassifierBuilderTest;
 import org.eng.aisp.classifier.gmm.GMMClassifierTest;
@@ -54,7 +53,7 @@ import org.junit.runners.Suite;
 
 	// This is passing, but we usually use DCASE and not CNN, so only test DCASE (to speed up manual testing)
 //	CNNModelerTest.class,					//CNN test passes as of 3/22/2018, but it takes long to run, thus commented out
-	DCASEClassifierTest.class,
+//	DCASEClassifierTest.class,
         })
 public class ModelingTestSuite {
 
