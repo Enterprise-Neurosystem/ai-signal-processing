@@ -10,3 +10,7 @@
 /spliced.wav
 /spliced.txt
 /target/
+*.DS_STORE
+*.idea/
+*.iml/
+
