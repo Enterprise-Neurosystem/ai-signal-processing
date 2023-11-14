@@ -62,17 +62,35 @@
 			<artifactId>snakeyaml</artifactId>
 			<version>1.24</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-nn</artifactId>
-			<version>1.0.0-M1.1</version>
+			<version>1.0.0-M2.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.nd4j</groupId>
 			<artifactId>nd4j-native-platform</artifactId>
-			<version>1.0.0-M1.1</version>
+			<version>1.0.0-M2.1</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.nd4j</groupId>
+			<artifactId>nd4j-native</artifactId>
+			<version>1.0.0-M2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.nd4j</groupId>
+			<artifactId>nd4j-native</artifactId>
+			<version>1.0.0-M2.1</version>
+			<classifier>macosx-arm64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>openblas</artifactId>
+			<version>0.3.21-1.5.8</version>
+			<classifier>macosx-arm64</classifier>
 		</dependency>
 
 
@@ -171,7 +189,7 @@
             <version>${graalvm.version}</version>
             <scope>runtime</scope>
         </dependency>
-  
+
 
 		<!--  
   	#################### Testing dependencies ##############
